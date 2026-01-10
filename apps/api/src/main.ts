@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -33,6 +34,19 @@ async function bootstrap() {
       },
     })
   );
+
+  // Swagger docs (enabled in all envs; adjust if needed)
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('My Life Finance API')
+    .setDescription('OpenAPI docs for My Life Finance')
+    .setVersion('1.0.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'JWT access token' },
+      'access-token'
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document);
 
   const port = configService.get('PORT', 3000);
 
