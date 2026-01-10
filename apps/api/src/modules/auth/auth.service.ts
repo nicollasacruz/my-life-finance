@@ -162,7 +162,7 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + this.refreshTtlMs);
     await this.prisma.refreshToken.create({
       data: {
-        hashedToken,
+        token: hashedToken,
         userId: user.id,
         expiresAt,
       },
@@ -208,7 +208,7 @@ export class AuthService {
     });
 
     for (const candidate of candidates) {
-      const match = await bcrypt.compare(token, candidate.hashedToken);
+      const match = await bcrypt.compare(token, candidate.token);
       if (match) {
         return candidate;
       }

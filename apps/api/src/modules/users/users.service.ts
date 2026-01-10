@@ -9,16 +9,14 @@ export class UsersService {
   async create(data: {
     email: string;
     passwordHash: string;
-    name?: string | null;
-    preferences?: Prisma.JsonValue;
+    name: string;
   }): Promise<User> {
     const email = data.email.toLowerCase();
     return this.prisma.user.create({
       data: {
         email,
         passwordHash: data.passwordHash,
-        name: data.name ?? null,
-        preferences: data.preferences ?? {},
+        name: data.name,
       },
     });
   }
@@ -42,18 +40,18 @@ export class UsersService {
     });
   }
 
-  async addPushSubscription(userId: string, input: { endpoint: string; p256dhKey: string; authKey: string }) {
+  async addPushSubscription(userId: string, input: { endpoint: string; p256dh: string; auth: string }) {
     return this.prisma.pushSubscription.upsert({
       where: { endpoint: input.endpoint },
       update: {
-        p256dhKey: input.p256dhKey,
-        authKey: input.authKey,
+        p256dh: input.p256dh,
+        auth: input.auth,
         userId,
       },
       create: {
         endpoint: input.endpoint,
-        p256dhKey: input.p256dhKey,
-        authKey: input.authKey,
+        p256dh: input.p256dh,
+        auth: input.auth,
         userId,
       },
     });
