@@ -33,6 +33,14 @@ export class CategoriesController {
     return this.categoriesService.create(workspaceId, createCategoryDto);
   }
 
+  @ApiOperation({ summary: 'Seed default household categories' })
+  @UseGuards(RolesGuard)
+  @Roles(MemberRole.OWNER, MemberRole.ADMIN)
+  @Post('seed-defaults')
+  seedDefaults(@Param('workspaceId') workspaceId: string) {
+    return this.categoriesService.seedDefaultCategories(workspaceId);
+  }
+
   @ApiOperation({ summary: 'Get all categories in workspace' })
   @Get()
   findAll(@Param('workspaceId') workspaceId: string) {
