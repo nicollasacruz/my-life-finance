@@ -22,6 +22,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const navItems = [
     { path: '/', label: 'Dashboard' },
     { path: '/accounts', label: 'Contas' },
+    { path: '/categories', label: 'Categorias' },
     { path: '/instances', label: 'Vencimentos' },
   ];
 
