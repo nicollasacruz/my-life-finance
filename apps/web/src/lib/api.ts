@@ -1,14 +1,17 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000/api';
 
-export const api = axios.create({
+const api = axios.create({
   baseURL: API_URL,
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+export { api };
+export default api;
 
 // Request interceptor to add access token
 api.interceptors.request.use(
