@@ -5,6 +5,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { AccountsModule } from './modules/accounts/accounts.module';
+import { AccountInstancesModule } from './modules/account-instances/account-instances.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
     AuthModule,
     UsersModule,
     WorkspacesModule,
+    CategoriesModule,
+    AccountsModule,
+    AccountInstancesModule,
   ],
 })
 export class AppModule {}
