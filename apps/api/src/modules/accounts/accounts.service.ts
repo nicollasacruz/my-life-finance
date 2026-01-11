@@ -36,6 +36,9 @@ export class AccountsService {
         dueDay: dto.dueDay,
         recurrence: dto.recurrence || 'MONTHLY',
         budgetAmount: dto.budgetAmount,
+        totalInstallments: dto.totalInstallments,
+        principalAmount: dto.principalAmount,
+        interestRate: dto.interestRate,
         alertDaysBefore: dto.alertDaysBefore ?? 3,
         alertBudgetPercent: dto.alertBudgetPercent ?? 80,
         isActive: dto.isActive ?? true,
@@ -47,8 +50,8 @@ export class AccountsService {
       },
     });
 
-    // Automatically generate instances for FIXED accounts for the entire year
-    if (account.type === AccountType.FIXED && account.isActive) {
+    // Automatically generate instances for FIXED and FINANCING accounts
+    if ((account.type === AccountType.FIXED || account.type === AccountType.FINANCING) && account.isActive) {
       await this.accountInstancesService.generateInstancesForAccount(account.id);
     }
 
@@ -56,7 +59,7 @@ export class AccountsService {
   }
 
   async findAll(workspaceId: string, type?: AccountType) {
-    return this.prisma.account.findMany({
+    const accounts = await this.prisma.account.findMany({
       where: {
         workspaceId,
         ...(type && { type }),
@@ -68,11 +71,29 @@ export class AccountsService {
             instances: true,
           },
         },
+        instances: {
+          where: {
+            status: 'PAID',
+          },
+          select: {
+            id: true,
+          },
+        },
       },
       orderBy: {
         name: 'asc',
       },
     });
+
+    // Transform to include paidInstances count
+    return accounts.map(account => ({
+      ...account,
+      _count: {
+        instances: account._count.instances,
+        paidInstances: account.instances.length,
+      },
+      instances: undefined, // Remove instances array from response
+    }));
   }
 
   async findOne(id: string, workspaceId: string) {
@@ -156,5 +177,68 @@ export class AccountsService {
     });
 
     return { success: true };
+  }
+
+  /**
+   * Check and finalize financing accounts that have completed all installments or reached endDate
+   */
+  async finalizeCompletedFinancings() {
+    const now = new Date();
+
+    // Find active financing accounts that have reached their end date
+    const accountsToFinalize = await this.prisma.account.findMany({
+      where: {
+        type: AccountType.FINANCING,
+        isActive: true,
+        OR: [
+          // End date has been reached
+          {
+            endDate: {
+              lte: now,
+            },
+          },
+        ],
+      },
+      include: {
+        instances: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    const finalizedIds: string[] = [];
+
+    for (const account of accountsToFinalize) {
+      let shouldFinalize = false;
+
+      // Check if end date has been reached
+      if (account.endDate && account.endDate <= now) {
+        shouldFinalize = true;
+      }
+
+      // Check if all installments are paid (if totalInstallments is set)
+      if (account.totalInstallments) {
+        const paidInstances = account.instances.filter((i) => i.status === 'PAID');
+        if (paidInstances.length >= account.totalInstallments) {
+          shouldFinalize = true;
+        }
+      }
+
+      if (shouldFinalize) {
+        await this.prisma.account.update({
+          where: { id: account.id },
+          data: { isActive: false },
+        });
+        finalizedIds.push(account.id);
+      }
+    }
+
+    return {
+      count: finalizedIds.length,
+      accountIds: finalizedIds,
+    };
   }
 }

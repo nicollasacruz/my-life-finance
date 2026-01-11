@@ -87,6 +87,28 @@ export class CreateAccountDto {
   @IsOptional()
   alertBudgetPercent?: number;
 
+  // FINANCING account fields
+  @ApiPropertyOptional({ example: 24, description: 'For FINANCING: total number of installments' })
+  @ValidateIf((o) => o.type === AccountType.FINANCING)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  totalInstallments?: number;
+
+  @ApiPropertyOptional({ example: 10000.00, description: 'For FINANCING: total principal amount financed' })
+  @ValidateIf((o) => o.type === AccountType.FINANCING)
+  @IsNumber()
+  @IsOptional()
+  principalAmount?: number;
+
+  @ApiPropertyOptional({ example: 5.5, description: 'For FINANCING: annual interest rate percentage' })
+  @ValidateIf((o) => o.type === AccountType.FINANCING)
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  @IsOptional()
+  interestRate?: number;
+
   // Common fields
   @ApiPropertyOptional({ default: true })
   @IsBoolean()

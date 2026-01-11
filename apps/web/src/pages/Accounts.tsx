@@ -198,11 +198,21 @@ export default function Accounts() {
                         </div>
                       )}
                       {account.totalInstallments && (
-                        <div className="flex items-center text-sm">
-                          <span className="text-gray-500">Parcelas:</span>
-                          <span className="ml-2 font-medium text-gray-900">
-                            {account.totalInstallments}x
-                          </span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Progresso:</span>
+                            <span className="font-medium text-gray-900">
+                              {account._count?.paidInstances || 0} / {account.totalInstallments} pagas
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-purple-600 h-2 rounded-full transition-all"
+                              style={{
+                                width: `${Math.min(((account._count?.paidInstances || 0) / account.totalInstallments) * 100, 100)}%`
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
                       {account.principalAmount && (

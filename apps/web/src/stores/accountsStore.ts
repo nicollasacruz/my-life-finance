@@ -42,6 +42,10 @@ interface Account {
   endDate?: string;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    instances: number;
+    paidInstances?: number;
+  };
 }
 
 interface AccountsState {

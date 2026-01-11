@@ -94,6 +94,7 @@ export class AccountInstancesService {
 
   /**
    * Generate instances for a single account (called after account creation)
+   * Supports both FIXED and FINANCING account types
    */
   async generateInstancesForAccount(accountId: string) {
     const account = await this.prisma.account.findUnique({
@@ -101,73 +102,125 @@ export class AccountInstancesService {
       include: { workspace: true },
     });
 
-    if (!account || account.type !== AccountType.FIXED || !account.isActive) {
+    if (!account || (account.type !== AccountType.FIXED && account.type !== AccountType.FINANCING) || !account.isActive) {
       return [];
     }
 
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1;
-
     const instances = [];
 
-    // Determine start month
-    let startMonth = currentMonth;
-    if (account.startDate) {
-      const startDate = new Date(account.startDate);
-      if (startDate.getFullYear() === currentYear) {
-        startMonth = Math.max(startDate.getMonth() + 1, currentMonth);
-      } else if (startDate.getFullYear() > currentYear) {
-        return []; // Account hasn't started yet
-      }
-    }
+    if (account.type === AccountType.FINANCING) {
+      // For FINANCING accounts, generate based on totalInstallments
+      const totalInstallments = account.totalInstallments || 12;
+      const startDate = account.startDate ? new Date(account.startDate) : today;
 
-    // Determine end month
-    let endMonth = 12;
-    if (account.endDate) {
-      const endDate = new Date(account.endDate);
-      if (endDate.getFullYear() === currentYear) {
-        endMonth = endDate.getMonth() + 1;
-      } else if (endDate.getFullYear() < currentYear) {
-        return []; // Account already ended
-      }
-    }
+      for (let i = 0; i < totalInstallments; i++) {
+        const installmentDate = new Date(startDate);
+        installmentDate.setMonth(startDate.getMonth() + i);
 
-    // Generate instances for remaining months of the year
-    for (let month = startMonth; month <= endMonth; month++) {
-      // Check if instance already exists
-      const existing = await this.prisma.accountInstance.findFirst({
-        where: {
-          accountId: account.id,
-          year: currentYear,
-          month,
-        },
-      });
+        const year = installmentDate.getFullYear();
+        const month = installmentDate.getMonth() + 1;
 
-      if (existing) continue;
+        // Skip if in the past
+        if (installmentDate < today) continue;
 
-      const dueDay = Math.min(account.dueDay || 1, this.getDaysInMonth(currentYear, month));
-      const dueDate = new Date(currentYear, month - 1, dueDay);
+        // Check if instance already exists
+        const existing = await this.prisma.accountInstance.findFirst({
+          where: {
+            accountId: account.id,
+            year,
+            month,
+          },
+        });
 
-      const instance = await this.prisma.accountInstance.create({
-        data: {
-          accountId: account.id,
-          year: currentYear,
-          month,
-          dueDate,
-          amount: account.isAmountFixed ? account.fixedAmount : null,
-          status: FixedAccountStatus.OPEN,
-        },
-        include: {
-          account: {
-            include: {
-              category: true,
+        if (existing) continue;
+
+        const dueDay = Math.min(account.dueDay || 1, this.getDaysInMonth(year, month));
+        const dueDate = new Date(year, month - 1, dueDay);
+
+        const instance = await this.prisma.accountInstance.create({
+          data: {
+            accountId: account.id,
+            year,
+            month,
+            dueDate,
+            amount: account.fixedAmount,
+            status: FixedAccountStatus.OPEN,
+          },
+          include: {
+            account: {
+              include: {
+                category: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      instances.push(instance);
+        instances.push(instance);
+      }
+    } else {
+      // For FIXED accounts, generate for the current year
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+
+      // Determine start month
+      let startMonth = currentMonth;
+      if (account.startDate) {
+        const startDate = new Date(account.startDate);
+        if (startDate.getFullYear() === currentYear) {
+          startMonth = Math.max(startDate.getMonth() + 1, currentMonth);
+        } else if (startDate.getFullYear() > currentYear) {
+          return []; // Account hasn't started yet
+        }
+      }
+
+      // Determine end month
+      let endMonth = 12;
+      if (account.endDate) {
+        const endDate = new Date(account.endDate);
+        if (endDate.getFullYear() === currentYear) {
+          endMonth = endDate.getMonth() + 1;
+        } else if (endDate.getFullYear() < currentYear) {
+          return []; // Account already ended
+        }
+      }
+
+      // Generate instances for remaining months of the year
+      for (let month = startMonth; month <= endMonth; month++) {
+        // Check if instance already exists
+        const existing = await this.prisma.accountInstance.findFirst({
+          where: {
+            accountId: account.id,
+            year: currentYear,
+            month,
+          },
+        });
+
+        if (existing) continue;
+
+        const dueDay = Math.min(account.dueDay || 1, this.getDaysInMonth(currentYear, month));
+        const dueDate = new Date(currentYear, month - 1, dueDay);
+
+        const instance = await this.prisma.accountInstance.create({
+          data: {
+            accountId: account.id,
+            year: currentYear,
+            month,
+            dueDate,
+            amount: account.isAmountFixed ? account.fixedAmount : null,
+            status: FixedAccountStatus.OPEN,
+          },
+          include: {
+            account: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        });
+
+        instances.push(instance);
+      }
     }
 
     return instances;
