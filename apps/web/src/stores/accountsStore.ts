@@ -4,6 +4,7 @@ import api from '../lib/api';
 export enum AccountType {
   FIXED = 'FIXED',
   BUDGET = 'BUDGET',
+  FINANCING = 'FINANCING',
 }
 
 export enum RecurrenceType {
@@ -31,6 +32,9 @@ interface Account {
   dueDay?: number;
   recurrence?: RecurrenceType;
   budgetAmount?: number;
+  totalInstallments?: number;
+  principalAmount?: number;
+  interestRate?: number;
   alertDaysBefore?: number;
   alertBudgetPercent?: number;
   isActive: boolean;

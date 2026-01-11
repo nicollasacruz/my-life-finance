@@ -186,6 +186,7 @@ model Category {
 enum AccountType {
   FIXED
   BUDGET
+  FINANCING
 }
 
 enum RecurrenceType {
@@ -216,6 +217,11 @@ model Account {
 
   // BUDGET
   budgetAmount Decimal? @db.Decimal(12, 2)
+
+  // FINANCING
+  totalInstallments Int?
+  principalAmount   Decimal? @db.Decimal(12, 2)
+  interestRate      Decimal? @db.Decimal(5, 2)
 
   // Alertas
   alertDaysBefore    Int @default(3)

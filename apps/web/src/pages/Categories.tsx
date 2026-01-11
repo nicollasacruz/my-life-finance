@@ -142,9 +142,9 @@ export default function Categories() {
                   <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
                     {category.name}
                   </h3>
-                  {category._count?.accounts > 0 && (
+                  {(category._count?.accounts ?? 0) > 0 && (
                     <p className="text-xs text-gray-500">
-                      {category._count.accounts} {category._count.accounts === 1 ? 'conta' : 'contas'}
+                      {category._count?.accounts} {category._count?.accounts === 1 ? 'conta' : 'contas'}
                     </p>
                   )}
 
@@ -152,9 +152,9 @@ export default function Categories() {
                   <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                     <button
                       onClick={() => handleDelete(category.id)}
-                      disabled={category._count?.accounts > 0}
+                      disabled={(category._count?.accounts ?? 0) > 0}
                       className="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={category._count?.accounts > 0 ? 'Não pode excluir categoria com contas' : 'Excluir'}
+                      title={(category._count?.accounts ?? 0) > 0 ? 'Não pode excluir categoria com contas' : 'Excluir'}
                     >
                       Excluir
                     </button>

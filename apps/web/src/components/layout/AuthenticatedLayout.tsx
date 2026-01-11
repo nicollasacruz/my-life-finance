@@ -12,7 +12,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { activeWorkspace } = useWorkspaceStore();
+  const { } = useWorkspaceStore();
 
   const handleLogout = async () => {
     await logout();

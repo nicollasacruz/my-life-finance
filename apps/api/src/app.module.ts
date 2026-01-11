@@ -8,6 +8,7 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AccountInstancesModule } from './modules/account-instances/account-instances.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AccountInstancesModule } from './modules/account-instances/account-inst
     CategoriesModule,
     AccountsModule,
     AccountInstancesModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

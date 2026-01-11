@@ -69,7 +69,7 @@ export default function Accounts() {
       {/* Filter Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
-          {['ALL', 'FIXED', 'BUDGET'].map((type) => (
+          {['ALL', 'FIXED', 'BUDGET', 'FINANCING'].map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type as any)}
@@ -79,7 +79,7 @@ export default function Accounts() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
             >
-              {type === 'ALL' ? 'Todas' : type === 'FIXED' ? 'Fixas' : 'Variáveis'}
+              {type === 'ALL' ? 'Todas' : type === 'FIXED' ? 'Fixas' : type === 'BUDGET' ? 'Variáveis' : 'Financiamentos'}
               <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100">
                 {type === 'ALL'
                   ? accounts.length
@@ -143,10 +143,12 @@ export default function Accounts() {
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       account.type === 'FIXED'
                         ? 'bg-purple-100 text-purple-800'
-                        : 'bg-green-100 text-green-800'
+                        : account.type === 'BUDGET'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-blue-100 text-blue-800'
                     }`}
                   >
-                    {account.type === 'FIXED' ? 'Fixa' : 'Variável'}
+                    {account.type === 'FIXED' ? 'Fixa' : account.type === 'BUDGET' ? 'Variável' : 'Financiamento'}
                   </span>
                 </div>
 
@@ -184,14 +186,46 @@ export default function Accounts() {
                       </span>
                     </div>
                   )}
+
+                  {account.type === 'FINANCING' && (
+                    <>
+                      {account.fixedAmount && (
+                        <div className="flex items-center text-sm">
+                          <span className="text-gray-500">Parcela:</span>
+                          <span className="ml-2 font-semibold text-gray-900">
+                            €{Number(account.fixedAmount).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {account.totalInstallments && (
+                        <div className="flex items-center text-sm">
+                          <span className="text-gray-500">Parcelas:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {account.totalInstallments}x
+                          </span>
+                        </div>
+                      )}
+                      {account.principalAmount && (
+                        <div className="flex items-center text-sm">
+                          <span className="text-gray-500">Valor Total:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            €{Number(account.principalAmount).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {account.endDate && (
+                        <div className="flex items-center text-sm">
+                          <span className="text-gray-500">Término:</span>
+                          <span className="ml-2 font-medium text-gray-900">
+                            {new Date(account.endDate).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-end space-x-2 pt-4 border-t border-gray-200">
-                  <button
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                  >
-                    Editar
-                  </button>
                   <button
                     onClick={() => handleDelete(account.id)}
                     className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"

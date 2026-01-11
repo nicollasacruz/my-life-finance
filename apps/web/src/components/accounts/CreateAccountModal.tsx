@@ -24,6 +24,10 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
     dueDay: '',
     recurrence: RecurrenceType.MONTHLY,
     budgetAmount: '',
+    totalInstallments: '',
+    principalAmount: '',
+    interestRate: '',
+    startDate: new Date().toISOString().split('T')[0],
     alertDaysBefore: '3',
     alertBudgetPercent: '80',
     isActive: true,
@@ -65,6 +69,33 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
           payload.budgetAmount = parseFloat(formData.budgetAmount);
         }
         payload.alertBudgetPercent = parseInt(formData.alertBudgetPercent);
+      } else if (formData.type === AccountType.FINANCING) {
+        if (formData.fixedAmount) {
+          payload.fixedAmount = parseFloat(formData.fixedAmount);
+        }
+        if (formData.totalInstallments) {
+          payload.totalInstallments = parseInt(formData.totalInstallments);
+        }
+        if (formData.principalAmount) {
+          payload.principalAmount = parseFloat(formData.principalAmount);
+        }
+        if (formData.interestRate) {
+          payload.interestRate = parseFloat(formData.interestRate);
+        }
+        if (formData.dueDay) {
+          payload.dueDay = parseInt(formData.dueDay);
+        }
+        if (formData.startDate) {
+          payload.startDate = new Date(formData.startDate).toISOString();
+        }
+        // Calculate end date based on totalInstallments
+        if (formData.totalInstallments && formData.startDate) {
+          const endDate = new Date(formData.startDate);
+          endDate.setMonth(endDate.getMonth() + parseInt(formData.totalInstallments));
+          payload.endDate = endDate.toISOString();
+        }
+        payload.recurrence = RecurrenceType.MONTHLY;
+        payload.alertDaysBefore = parseInt(formData.alertDaysBefore);
       }
 
       await createAccount(activeWorkspace.id, payload);
@@ -82,6 +113,10 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
         dueDay: '',
         recurrence: RecurrenceType.MONTHLY,
         budgetAmount: '',
+        totalInstallments: '',
+        principalAmount: '',
+        interestRate: '',
+        startDate: new Date().toISOString().split('T')[0],
         alertDaysBefore: '3',
         alertBudgetPercent: '80',
         isActive: true,
@@ -148,35 +183,50 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tipo de Conta *
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.FIXED })}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-3 rounded-lg border-2 transition-all ${
                       formData.type === AccountType.FIXED
                         ? 'border-purple-500 bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-2">📅</div>
-                    <div className="font-semibold text-gray-900">Fixa</div>
+                    <div className="text-2xl mb-1">📅</div>
+                    <div className="font-semibold text-gray-900 text-sm">Fixa</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Contas recorrentes com vencimento
+                      Contas recorrentes
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.BUDGET })}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-3 rounded-lg border-2 transition-all ${
                       formData.type === AccountType.BUDGET
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-2">💰</div>
-                    <div className="font-semibold text-gray-900">Variável</div>
+                    <div className="text-2xl mb-1">💰</div>
+                    <div className="font-semibold text-gray-900 text-sm">Variável</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Orçamento mensal com transações
+                      Orçamento mensal
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: AccountType.FINANCING })}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      formData.type === AccountType.FINANCING
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">🏦</div>
+                    <div className="font-semibold text-gray-900 text-sm">Financiamento</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Parcelado
                     </div>
                   </button>
                 </div>
@@ -321,6 +371,124 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                       max="100"
                       value={formData.alertBudgetPercent}
                       onChange={(e) => setFormData({ ...formData, alertBudgetPercent: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* FINANCING Account Fields */}
+              {formData.type === AccountType.FINANCING && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Valor da Parcela *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-gray-500">€</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          value={formData.fixedAmount}
+                          onChange={(e) => setFormData({ ...formData, fixedAmount: e.target.value })}
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Número de Parcelas *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={formData.totalInstallments}
+                        onChange={(e) => setFormData({ ...formData, totalInstallments: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ex: 12, 24, 36"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Valor Total Financiado
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-gray-500">€</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={formData.principalAmount}
+                          onChange={(e) => setFormData({ ...formData, principalAmount: e.target.value })}
+                          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Taxa de Juros (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.interestRate}
+                        onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ex: 2.5"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Dia do Vencimento *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        required
+                        value={formData.dueDay}
+                        onChange={(e) => setFormData({ ...formData, dueDay: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ex: 5, 15, 25"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Data de Início *
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Alertar X dias antes
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.alertDaysBefore}
+                      onChange={(e) => setFormData({ ...formData, alertDaysBefore: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
