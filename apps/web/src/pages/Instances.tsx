@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWorkspaceStore } from '../stores/workspaceStore';
 import { useInstancesStore, InstanceStatus } from '../stores/instancesStore';
 import MarkPaidModal from '../components/instances/MarkPaidModal';
+import CreateTransactionModal from '../components/transactions/CreateTransactionModal';
 import { AuthenticatedLayout } from '../components/layout/AuthenticatedLayout';
 
 export default function Instances() {
@@ -14,6 +15,8 @@ export default function Instances() {
   const [filterStatus, setFilterStatus] = useState<InstanceStatus | 'ALL' | 'OVERDUE'>('ALL');
   const [selectedInstance, setSelectedInstance] = useState<any>(null);
   const [isMarkPaidOpen, setIsMarkPaidOpen] = useState(false);
+  const [isCreateTransactionOpen, setIsCreateTransactionOpen] = useState(false);
+  const [selectedTransactionInstance, setSelectedTransactionInstance] = useState<any>(null);
 
   useEffect(() => {
     if (activeWorkspace) {
@@ -50,6 +53,11 @@ export default function Instances() {
     } catch (error) {
       console.error('Failed to reopen:', error);
     }
+  };
+
+  const handleAddTransaction = (instance: any) => {
+    setSelectedTransactionInstance(instance);
+    setIsCreateTransactionOpen(true);
   };
 
   const months = [
@@ -243,7 +251,15 @@ export default function Instances() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {instance.status === 'OPEN' && (
+                    {instance.account.type === 'BUDGET' && (
+                      <button
+                        onClick={() => handleAddTransaction(instance)}
+                        className="text-blue-600 hover:text-blue-900 font-medium mr-3"
+                      >
+                        + Transação
+                      </button>
+                    )}
+                    {instance.status === 'OPEN' && instance.account.type !== 'BUDGET' && (
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => handleMarkPaid(instance)}
@@ -284,6 +300,22 @@ export default function Instances() {
             setSelectedInstance(null);
           }}
           instance={selectedInstance}
+        />
+      )}
+
+      {/* Create Transaction Modal */}
+      {selectedTransactionInstance && (
+        <CreateTransactionModal
+          isOpen={isCreateTransactionOpen}
+          onClose={() => {
+            setIsCreateTransactionOpen(false);
+            setSelectedTransactionInstance(null);
+            if (activeWorkspace) {
+              fetchInstances(activeWorkspace.id, selectedYear, selectedMonth);
+            }
+          }}
+          accountInstanceId={selectedTransactionInstance.id}
+          accountName={selectedTransactionInstance.account.name}
         />
       )}
       </div>
