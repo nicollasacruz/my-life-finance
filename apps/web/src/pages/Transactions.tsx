@@ -2,22 +2,29 @@ import { useEffect, useState } from 'react';
 import { useWorkspaceStore } from '../stores/workspaceStore';
 import { useTransactionsStore } from '../stores/transactionsStore';
 import { useAccountsStore, AccountType } from '../stores/accountsStore';
+import { useInstancesStore } from '../stores/instancesStore';
 import { AuthenticatedLayout } from '../components/layout/AuthenticatedLayout';
+import CreateTransactionModal from '../components/transactions/CreateTransactionModal';
 
 export default function Transactions() {
   const { activeWorkspace } = useWorkspaceStore();
   const { transactions, fetchTransactions, deleteTransaction, isLoading } = useTransactionsStore();
   const { accounts, fetchAccounts } = useAccountsStore();
+  const { instances, fetchInstances } = useInstancesStore();
 
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string>('');
+  const [selectedAccountName, setSelectedAccountName] = useState<string>('');
 
   useEffect(() => {
     if (activeWorkspace) {
       fetchAccounts(activeWorkspace.id, AccountType.BUDGET);
+      fetchInstances(activeWorkspace.id, selectedYear, selectedMonth);
     }
-  }, [activeWorkspace]);
+  }, [activeWorkspace, selectedYear, selectedMonth]);
 
   useEffect(() => {
     if (activeWorkspace) {
@@ -31,6 +38,7 @@ export default function Transactions() {
   }, [activeWorkspace, selectedAccountId, selectedYear, selectedMonth]);
 
   const budgetAccounts = accounts.filter(a => a.type === 'BUDGET');
+  const budgetInstances = instances.filter(i => i.account.type === 'BUDGET');
 
   const handleDelete = async (id: string) => {
     if (!activeWorkspace) return;
@@ -41,6 +49,18 @@ export default function Transactions() {
         console.error('Failed to delete transaction:', error);
       }
     }
+  };
+
+  const handleCreateTransaction = () => {
+    if (budgetInstances.length === 0) {
+      alert('Não há contas BUDGET disponíveis para este mês. Crie uma conta BUDGET primeiro.');
+      return;
+    }
+    // Use the first budget instance or let user select in modal
+    const firstInstance = budgetInstances[0];
+    setSelectedInstanceId(firstInstance.id);
+    setSelectedAccountName(firstInstance.account.name);
+    setIsCreateModalOpen(true);
   };
 
 
@@ -69,11 +89,22 @@ export default function Transactions() {
     <AuthenticatedLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Transações</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Acompanhe seus gastos nas contas variáveis
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Transações</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Acompanhe seus gastos nas contas variáveis
+            </p>
+          </div>
+          <button
+            onClick={handleCreateTransaction}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Nova Transação
+          </button>
         </div>
 
         {/* Filters */}
@@ -216,6 +247,24 @@ export default function Transactions() {
           </div>
         )}
       </div>
+
+      <CreateTransactionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          // Refresh transactions after creating
+          if (activeWorkspace) {
+            fetchTransactions(
+              activeWorkspace.id,
+              selectedAccountId || undefined,
+              selectedYear,
+              selectedMonth,
+            );
+          }
+        }}
+        accountInstanceId={selectedInstanceId}
+        accountName={selectedAccountName}
+      />
     </AuthenticatedLayout>
   );
 }

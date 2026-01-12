@@ -134,16 +134,27 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex min-h-screen items-end justify-center sm:items-center p-0 sm:p-4">
         <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose}></div>
 
-        <div className="inline-block w-full max-w-2xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
-          <form onSubmit={handleSubmit}>
-            <div className="px-6 py-5 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Nova Conta</h3>
+        <div className="relative w-full sm:max-w-2xl bg-white shadow-xl sm:rounded-lg max-h-screen sm:max-h-[90vh] flex flex-col">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Nova Conta</h3>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="sm:hidden text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-sm text-red-600">{error}</p>
@@ -183,7 +194,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tipo de Conta *
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.FIXED })}
@@ -193,10 +204,14 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">📅</div>
-                    <div className="font-semibold text-gray-900 text-sm">Fixa</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Contas recorrentes
+                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                      <div className="text-2xl sm:mb-1">📅</div>
+                      <div className="flex-1 sm:flex-none text-left sm:text-center">
+                        <div className="font-semibold text-gray-900 text-sm">Fixa</div>
+                        <div className="text-xs text-gray-500 sm:mt-1">
+                          Contas recorrentes
+                        </div>
+                      </div>
                     </div>
                   </button>
                   <button
@@ -208,10 +223,14 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">💰</div>
-                    <div className="font-semibold text-gray-900 text-sm">Variável</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Orçamento mensal
+                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                      <div className="text-2xl sm:mb-1">💰</div>
+                      <div className="flex-1 sm:flex-none text-left sm:text-center">
+                        <div className="font-semibold text-gray-900 text-sm">Variável</div>
+                        <div className="text-xs text-gray-500 sm:mt-1">
+                          Orçamento mensal
+                        </div>
+                      </div>
                     </div>
                   </button>
                   <button
@@ -223,10 +242,14 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">🏦</div>
-                    <div className="font-semibold text-gray-900 text-sm">Financiamento</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Parcelado
+                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                      <div className="text-2xl sm:mb-1">🏦</div>
+                      <div className="flex-1 sm:flex-none text-left sm:text-center">
+                        <div className="font-semibold text-gray-900 text-sm">Financiamento</div>
+                        <div className="text-xs text-gray-500 sm:mt-1">
+                          Parcelado
+                        </div>
+                      </div>
                     </div>
                   </button>
                 </div>
@@ -309,7 +332,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Dia de Vencimento
@@ -380,7 +403,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
               {/* FINANCING Account Fields */}
               {formData.type === AccountType.FINANCING && (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Valor da Parcela *
@@ -415,7 +438,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Valor Total Financiado
@@ -449,7 +472,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Dia do Vencimento *
@@ -496,19 +519,19 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
               )}
             </div>
 
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Criando...' : 'Criar Conta'}
               </button>
