@@ -62,6 +62,7 @@ export class AccountsService {
     const accounts = await this.prisma.account.findMany({
       where: {
         workspaceId,
+        isActive: true, // Only show active accounts
         ...(type && { type }),
       },
       include: {
@@ -172,8 +173,29 @@ export class AccountsService {
       throw new NotFoundException('Account not found');
     }
 
-    await this.prisma.account.delete({
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    // Delete only future instances (current month and onwards)
+    await this.prisma.accountInstance.deleteMany({
+      where: {
+        accountId: id,
+        OR: [
+          { year: { gt: currentYear } },
+          {
+            year: currentYear,
+            month: { gte: currentMonth },
+          },
+        ],
+      },
+    });
+
+    // Mark the account as inactive instead of deleting
+    // This preserves historical data
+    await this.prisma.account.update({
       where: { id },
+      data: { isActive: false },
     });
 
     return { success: true };

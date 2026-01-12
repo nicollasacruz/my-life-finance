@@ -159,11 +159,11 @@ export class AccountInstancesService {
         instances.push(instance);
       }
     } else {
-      // For FIXED accounts, generate for the current year
+      // For FIXED accounts, generate from current month to end of year
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth() + 1;
 
-      // Determine start month
+      // Determine start month (current month or startDate, whichever is later)
       let startMonth = currentMonth;
       if (account.startDate) {
         const startDate = new Date(account.startDate);
