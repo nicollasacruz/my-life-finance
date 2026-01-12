@@ -198,17 +198,17 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.FIXED })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       formData.type === AccountType.FIXED
                         ? 'border-purple-500 bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
-                      <div className="text-2xl sm:mb-1">📅</div>
+                    <div className="flex items-center gap-3 sm:flex-col sm:gap-0 sm:text-center">
+                      <div className="text-2xl flex-shrink-0 sm:mb-2">📅</div>
                       <div className="flex-1 sm:flex-none text-left sm:text-center">
-                        <div className="font-semibold text-gray-900 text-sm">Fixa</div>
-                        <div className="text-xs text-gray-500 sm:mt-1">
+                        <div className="font-semibold text-gray-900 text-sm mb-0.5">Fixa</div>
+                        <div className="text-xs text-gray-500">
                           Contas recorrentes
                         </div>
                       </div>
@@ -217,17 +217,17 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.BUDGET })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       formData.type === AccountType.BUDGET
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
-                      <div className="text-2xl sm:mb-1">💰</div>
+                    <div className="flex items-center gap-3 sm:flex-col sm:gap-0 sm:text-center">
+                      <div className="text-2xl flex-shrink-0 sm:mb-2">💰</div>
                       <div className="flex-1 sm:flex-none text-left sm:text-center">
-                        <div className="font-semibold text-gray-900 text-sm">Variável</div>
-                        <div className="text-xs text-gray-500 sm:mt-1">
+                        <div className="font-semibold text-gray-900 text-sm mb-0.5">Variável</div>
+                        <div className="text-xs text-gray-500">
                           Orçamento mensal
                         </div>
                       </div>
@@ -236,17 +236,17 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: AccountType.FINANCING })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       formData.type === AccountType.FINANCING
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
-                      <div className="text-2xl sm:mb-1">🏦</div>
+                    <div className="flex items-center gap-3 sm:flex-col sm:gap-0 sm:text-center">
+                      <div className="text-2xl flex-shrink-0 sm:mb-2">🏦</div>
                       <div className="flex-1 sm:flex-none text-left sm:text-center">
-                        <div className="font-semibold text-gray-900 text-sm">Financiamento</div>
-                        <div className="text-xs text-gray-500 sm:mt-1">
+                        <div className="font-semibold text-gray-900 text-sm mb-0.5">Financiamento</div>
+                        <div className="text-xs text-gray-500">
                           Parcelado
                         </div>
                       </div>
