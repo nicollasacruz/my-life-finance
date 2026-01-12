@@ -33,11 +33,13 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { user, accessToken, refreshToken } = await this.authService.login(dto);
+    console.log('[Auth] Setting refresh token cookie for user:', user.email);
     res.cookie(
       this.authService.refreshCookieName,
       refreshToken,
       this.authService.getRefreshCookieOptions()
     );
+    console.log('[Auth] Cookie set successfully');
     return { user, accessToken };
   }
 
@@ -45,9 +47,13 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = this.authService.extractRefreshTokenFromRequest(req);
+    console.log('[Auth] Refresh request - token found:', !!refreshToken);
+    console.log('[Auth] Cookies received:', Object.keys(req.cookies || {}));
+
     const { user, accessToken, refreshToken: newRefresh } = await this.authService.refresh(
       refreshToken || ''
     );
+    console.log('[Auth] Setting new refresh token for user:', user.email);
     res.cookie(
       this.authService.refreshCookieName,
       newRefresh,
@@ -61,7 +67,12 @@ export class AuthController {
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = this.authService.extractRefreshTokenFromRequest(req);
     await this.authService.logout(refreshToken);
-    res.clearCookie(this.authService.refreshCookieName, this.authService.getRefreshCookieOptions());
+    // Clear cookie with same options used to set it
+    const cookieOptions = this.authService.getRefreshCookieOptions();
+    res.clearCookie(this.authService.refreshCookieName, {
+      ...cookieOptions,
+      maxAge: undefined, // Remove maxAge when clearing
+    });
     return { success: true };
   }
 

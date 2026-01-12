@@ -22,7 +22,12 @@ export function Login() {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
+      const message = err.response?.data?.message || 'Erro ao fazer login';
+      // Translate "Invalid credentials" to Portuguese
+      const translatedMessage = message === 'Invalid credentials'
+        ? 'Credenciais inválidas'
+        : message;
+      setError(translatedMessage);
     } finally {
       setIsLoading(false);
     }

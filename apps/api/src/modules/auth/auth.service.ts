@@ -55,6 +55,20 @@ export class AuthService {
       name: dto.name,
     });
 
+    // Create default personal workspace for new user
+    await this.prisma.workspace.create({
+      data: {
+        name: 'Meu Espaço Pessoal',
+        type: 'PERSONAL',
+        members: {
+          create: {
+            userId: user.id,
+            role: 'OWNER',
+          },
+        },
+      },
+    });
+
     return this.issueTokens(user);
   }
 
@@ -122,13 +136,23 @@ export class AuthService {
   }
 
   getRefreshCookieOptions() {
-    return {
+    const options = {
       httpOnly: true,
       secure: this.isProd,
       sameSite: this.isProd ? ('none' as const) : ('lax' as const),
       maxAge: this.refreshTtlMs,
       path: '/',
+      // Don't set domain in development (localhost)
+      // domain: undefined,
     };
+
+    console.log('[Auth] Cookie options:', {
+      ...options,
+      maxAge: `${this.refreshTtlMs}ms (${this.refreshTtl})`,
+      isProd: this.isProd,
+    });
+
+    return options;
   }
 
   private async issueTokens(user: User) {
