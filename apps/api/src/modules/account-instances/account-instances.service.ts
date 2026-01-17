@@ -94,7 +94,7 @@ export class AccountInstancesService {
 
   /**
    * Generate instances for a single account (called after account creation)
-   * Supports both FIXED and FINANCING account types
+   * Supports FIXED, BUDGET and FINANCING account types
    */
   async generateInstancesForAccount(accountId: string) {
     const account = await this.prisma.account.findUnique({
@@ -102,7 +102,8 @@ export class AccountInstancesService {
       include: { workspace: true },
     });
 
-    if (!account || (account.type !== AccountType.FIXED && account.type !== AccountType.FINANCING) || !account.isActive) {
+    const supportedTypes = [AccountType.FIXED, AccountType.BUDGET, AccountType.FINANCING];
+    if (!account || !supportedTypes.includes(account.type) || !account.isActive) {
       return [];
     }
 
@@ -159,7 +160,7 @@ export class AccountInstancesService {
         instances.push(instance);
       }
     } else {
-      // For FIXED accounts, generate from current month to end of year
+      // For FIXED and BUDGET accounts, generate from current month to end of year
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth() + 1;
 
@@ -198,28 +199,40 @@ export class AccountInstancesService {
 
         if (existing) continue;
 
-        const dueDay = Math.min(account.dueDay || 1, this.getDaysInMonth(currentYear, month));
-        const dueDate = new Date(currentYear, month - 1, dueDay);
+        const instanceData =
+          account.type === AccountType.BUDGET
+            ? {
+                accountId: account.id,
+                year: currentYear,
+                month,
+                budgetAmount: account.budgetAmount,
+                status: FixedAccountStatus.OPEN,
+              }
+            : {
+                accountId: account.id,
+                year: currentYear,
+                month,
+                dueDate: new Date(
+                  currentYear,
+                  month - 1,
+                  Math.min(account.dueDay || 1, this.getDaysInMonth(currentYear, month)),
+                ),
+                amount: account.isAmountFixed ? account.fixedAmount : null,
+                status: FixedAccountStatus.OPEN,
+              };
 
-        const instance = await this.prisma.accountInstance.create({
-          data: {
-            accountId: account.id,
-            year: currentYear,
-            month,
-            dueDate,
-            amount: account.isAmountFixed ? account.fixedAmount : null,
-            status: FixedAccountStatus.OPEN,
-          },
-          include: {
-            account: {
-              include: {
-                category: true,
+        instances.push(
+          await this.prisma.accountInstance.create({
+            data: instanceData,
+            include: {
+              account: {
+                include: {
+                  category: true,
+                },
               },
             },
-          },
-        });
-
-        instances.push(instance);
+          }),
+        );
       }
     }
 
@@ -233,6 +246,9 @@ export class AccountInstancesService {
     const now = new Date();
     const targetYear = year || now.getFullYear();
     const targetMonth = month || now.getMonth() + 1;
+
+    // Ensure BUDGET accounts have instances for the requested month
+    await this.ensureBudgetInstancesForMonth(workspaceId, targetYear, targetMonth);
 
     const instances = await this.prisma.accountInstance.findMany({
       where: {
@@ -429,6 +445,54 @@ export class AccountInstancesService {
     });
 
     return { success: true };
+  }
+
+  /**
+   * Ensure all active BUDGET accounts have an instance for the given month
+   */
+  private async ensureBudgetInstancesForMonth(workspaceId: string, year: number, month: number) {
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0);
+
+    const accountsNeedingInstance = await this.prisma.account.findMany({
+      where: {
+        workspaceId,
+        type: AccountType.BUDGET,
+        isActive: true,
+        startDate: { lte: monthEnd },
+        OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
+        instances: {
+          none: {
+            year,
+            month,
+          },
+        },
+      },
+    });
+
+    if (!accountsNeedingInstance.length) return;
+
+    await this.prisma.$transaction(
+      accountsNeedingInstance.map((account) =>
+        this.prisma.accountInstance.upsert({
+          where: {
+            accountId_year_month: {
+              accountId: account.id,
+              year,
+              month,
+            },
+          },
+          update: {},
+          create: {
+            accountId: account.id,
+            year,
+            month,
+            budgetAmount: account.budgetAmount,
+            status: FixedAccountStatus.OPEN,
+          },
+        }),
+      ),
+    );
   }
 
   /**

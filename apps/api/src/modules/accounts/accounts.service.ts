@@ -50,8 +50,8 @@ export class AccountsService {
       },
     });
 
-    // Automatically generate instances for FIXED and FINANCING accounts
-    if ((account.type === AccountType.FIXED || account.type === AccountType.FINANCING) && account.isActive) {
+    // Automatically generate instances for FIXED, BUDGET and FINANCING accounts
+    if ((account.type === AccountType.FIXED || account.type === AccountType.BUDGET || account.type === AccountType.FINANCING) && account.isActive) {
       await this.accountInstancesService.generateInstancesForAccount(account.id);
     }
 

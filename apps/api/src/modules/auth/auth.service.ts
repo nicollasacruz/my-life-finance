@@ -56,9 +56,12 @@ export class AuthService {
     });
 
     // Create default personal workspace for new user
+    const defaultWorkspaceSlug = `personal-${user.id}`;
+
     await this.prisma.workspace.create({
       data: {
         name: 'Meu Espaço Pessoal',
+        slug: defaultWorkspaceSlug,
         type: 'PERSONAL',
         members: {
           create: {
