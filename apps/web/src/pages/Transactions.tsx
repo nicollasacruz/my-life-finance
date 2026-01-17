@@ -39,6 +39,8 @@ export default function Transactions() {
 
   const budgetAccounts = accounts.filter(a => a.type === 'BUDGET');
   const budgetInstances = instances.filter(i => i.account.type === 'BUDGET');
+  const formatAmount = (value: number | string | null | undefined) =>
+    Number(value ?? 0).toFixed(2);
 
   const handleDelete = async (id: string) => {
     if (!activeWorkspace) return;
@@ -52,11 +54,18 @@ export default function Transactions() {
   };
 
   const handleCreateTransaction = () => {
-    if (budgetInstances.length === 0) {
-      alert('Não há contas BUDGET disponíveis para este mês. Crie uma conta BUDGET primeiro.');
+    if (budgetAccounts.length === 0) {
+      alert('Não há contas BUDGET disponíveis. Crie uma conta BUDGET primeiro.');
       return;
     }
-    // Use the first budget instance or let user select in modal
+
+    // Check if there are instances for the current month
+    if (budgetInstances.length === 0) {
+      alert('Não há instâncias BUDGET disponíveis para este mês. Recarregue a página ou crie uma nova conta BUDGET.');
+      return;
+    }
+
+    // Use existing instance
     const firstInstance = budgetInstances[0];
     setSelectedInstanceId(firstInstance.id);
     setSelectedAccountName(firstInstance.account.name);
@@ -73,7 +82,7 @@ export default function Transactions() {
     return acc;
   }, {} as Record<string, typeof transactions>);
 
-  const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalSpent = transactions.reduce((sum, t) => sum + Number(t.amount ?? 0), 0);
 
   if (!activeWorkspace) {
     return (
@@ -165,7 +174,7 @@ export default function Transactions() {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <span className="text-lg font-medium text-gray-700">Total Gasto:</span>
-              <span className="text-2xl font-bold text-orange-600">€{totalSpent.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-orange-600">€{formatAmount(totalSpent)}</span>
             </div>
           </div>
         </div>
@@ -227,7 +236,7 @@ export default function Transactions() {
                         </div>
                         <div className="flex items-center space-x-4">
                           <span className="text-lg font-semibold text-gray-900">
-                            €{transaction.amount.toFixed(2)}
+                            €{formatAmount(transaction.amount)}
                           </span>
                           <button
                             onClick={() => handleDelete(transaction.id)}

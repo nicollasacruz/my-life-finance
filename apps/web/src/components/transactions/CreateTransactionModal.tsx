@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTransactionsStore } from '../../stores/transactionsStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useInstancesStore } from '../../stores/instancesStore';
+import { useAccountsStore, AccountType } from '../../stores/accountsStore';
 
 interface CreateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  accountInstanceId: string;
+  accountInstanceId?: string;
+  accountId?: string;
   accountName?: string;
 }
 
@@ -13,10 +16,13 @@ export default function CreateTransactionModal({
   isOpen,
   onClose,
   accountInstanceId,
+  accountId,
   accountName,
 }: CreateTransactionModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
   const { createTransaction, isLoading } = useTransactionsStore();
+  const { instances, fetchInstances } = useInstancesStore();
+  const { accounts } = useAccountsStore();
 
   const [formData, setFormData] = useState({
     amount: '',

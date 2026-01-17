@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useAccountsStore, AccountType, RecurrenceType } from '../../stores/accountsStore';
 
@@ -35,6 +35,18 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +149,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
       <div className="flex min-h-screen items-end justify-center sm:items-center p-0 sm:p-4">
         <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose}></div>
 
-        <div className="relative w-full sm:max-w-2xl bg-white shadow-xl sm:rounded-lg max-h-screen sm:max-h-[90vh] flex flex-col">
+        <div className="relative w-full sm:max-w-2xl bg-white border border-gray-200 shadow-xl sm:rounded-lg overflow-x-hidden max-h-screen sm:max-h-[90vh] flex flex-col">
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between">
@@ -279,18 +291,18 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Cor
                 </label>
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <input
                     type="color"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="h-10 w-20 rounded cursor-pointer"
+                    className="h-10 w-12 rounded cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -519,7 +531,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
               )}
             </div>
 
-            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 flex-shrink-0 sticky bottom-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
               <button
                 type="button"
                 onClick={onClose}
