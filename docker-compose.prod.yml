@@ -1,0 +1,100 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: mlf-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-myfinance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-myfinance}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-myfinance}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: mlf-redis-prod
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # NestJS API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: mlf-api-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=4321
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-myfinance}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-myfinance}?schema=public
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+      # nginx-proxy config
+      - VIRTUAL_HOST=${API_DOMAIN}
+      - VIRTUAL_PORT=4321
+      - LETSENCRYPT_HOST=${API_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+      - reverse-proxy
+    expose:
+      - "4321"
+
+  # React Web App
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: mlf-web-prod
+    restart: always
+    environment:
+      # nginx-proxy config
+      - VIRTUAL_HOST=${WEB_DOMAIN}
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=${WEB_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      - api
+    networks:
+      - reverse-proxy
+    expose:
+      - "80"
+
+volumes:
+  postgres_data:
+    name: mlf-postgres-data
+  redis_data:
+    name: mlf-redis-data
+
+networks:
+  internal:
+    name: mlf-internal
+    driver: bridge
+  reverse-proxy:
+    external: true

@@ -8,6 +8,9 @@ import Accounts from './pages/Accounts';
 import Instances from './pages/Instances';
 import Categories from './pages/Categories';
 import Transactions from './pages/Transactions';
+import Reports from './pages/Reports';
+import Workspace from './pages/Workspace';
+import Invite from './pages/Invite';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -41,6 +44,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/invite/:token" element={<Invite />} />
         <Route
           path="/"
           element={
@@ -78,6 +82,22 @@ function App() {
           element={
             <ProtectedRoute>
               <Transactions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workspace"
+          element={
+            <ProtectedRoute>
+              <Workspace />
             </ProtectedRoute>
           }
         />

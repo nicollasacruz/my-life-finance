@@ -109,6 +109,19 @@ export class CreateAccountDto {
   @IsOptional()
   interestRate?: number;
 
+  // ONE-TIME account fields
+  @ApiPropertyOptional({ example: 150.0, description: 'For ONE_TIME: purchase amount' })
+  @ValidateIf((o) => o.type === AccountType.ONE_TIME)
+  @IsNumber()
+  @IsOptional()
+  oneTimeAmount?: number;
+
+  @ApiPropertyOptional({ example: '2024-05-15', description: 'For ONE_TIME: date of the purchase/charge' })
+  @ValidateIf((o) => o.type === AccountType.ONE_TIME)
+  @IsDateString()
+  @IsOptional()
+  oneTimeDate?: string;
+
   // Common fields
   @ApiPropertyOptional({ default: true })
   @IsBoolean()

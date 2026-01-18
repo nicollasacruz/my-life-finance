@@ -32,4 +32,13 @@ export class DashboardController {
   ) {
     return this.dashboardService.getYearlyOverview(workspaceId, parseInt(year));
   }
+
+  @ApiOperation({ summary: 'Get yearly category report' })
+  @Get('category-report')
+  getCategoryReport(
+    @Param('workspaceId') workspaceId: string,
+    @Query('year') year: string,
+  ) {
+    return this.dashboardService.getCategoryReport(workspaceId, parseInt(year));
+  }
 }

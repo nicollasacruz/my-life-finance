@@ -1,17 +1,22 @@
 import { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 export function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const login = useAuthStore((state) => state.login);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next') || '/';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -20,7 +25,19 @@ export function Login() {
 
     try {
       await login(email, password);
-      navigate('/');
+
+      const pendingInvite = localStorage.getItem('pendingInviteToken');
+      if (pendingInvite) {
+        try {
+          await api.post(`/invites/${pendingInvite}/accept`);
+          localStorage.removeItem('pendingInviteToken');
+        } catch (inviteErr: any) {
+          const msg = inviteErr?.response?.data?.message || 'Erro ao aceitar convite';
+          setError(msg);
+        }
+      }
+
+      navigate(next);
     } catch (err: any) {
       const message = err.response?.data?.message || 'Erro ao fazer login';
       // Translate "Invalid credentials" to Portuguese
@@ -80,7 +97,10 @@ export function Login() {
 
           <p className="text-center text-sm text-gray-600">
             Não tem conta?{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link
+              to={`/register${next ? `?next=${encodeURIComponent(next)}` : ''}`}
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
               Registar
             </Link>
           </p>

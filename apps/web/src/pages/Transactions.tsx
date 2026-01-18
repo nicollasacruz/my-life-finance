@@ -98,7 +98,7 @@ export default function Transactions() {
     <AuthenticatedLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Transações</h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -107,7 +107,7 @@ export default function Transactions() {
           </div>
           <button
             onClick={handleCreateTransaction}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            className="inline-flex w-full justify-center sm:w-auto items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -117,7 +117,7 @@ export default function Transactions() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -174,7 +174,7 @@ export default function Transactions() {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <span className="text-lg font-medium text-gray-700">Total Gasto:</span>
-              <span className="text-2xl font-bold text-orange-600">€{formatAmount(totalSpent)}</span>
+              <span className="text-2xl font-bold text-orange-600 tabular-nums">€{formatAmount(totalSpent)}</span>
             </div>
           </div>
         </div>
@@ -197,13 +197,13 @@ export default function Transactions() {
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedTransactions).map(([date, dayTransactions]) => (
-              <div key={date} className="bg-white rounded-lg shadow">
-                <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
+              <div key={date} className="bg-white rounded-lg border border-gray-200">
+                <div className="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-900">{date}</h3>
                 </div>
                 <div className="divide-y divide-gray-200">
                   {dayTransactions.map((transaction) => (
-                    <div key={transaction.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div key={transaction.id} className="px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4 flex-1">
                           <div
@@ -235,7 +235,7 @@ export default function Transactions() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className="text-lg font-semibold text-gray-900">
+                          <span className="text-lg font-semibold text-gray-900 tabular-nums">
                             €{formatAmount(transaction.amount)}
                           </span>
                           <button

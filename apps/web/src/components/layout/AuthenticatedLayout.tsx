@@ -26,7 +26,9 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
     { path: '/accounts', label: 'Contas' },
     { path: '/instances', label: 'Vencimentos' },
     { path: '/transactions', label: 'Transações' },
+    { path: '/reports', label: 'Reports' },
     { path: '/categories', label: 'Categorias' },
+    { path: '/workspace', label: 'Workspace' },
   ];
 
   const isActive = (path: string) => {

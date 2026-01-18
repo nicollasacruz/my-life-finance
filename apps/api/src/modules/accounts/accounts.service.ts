@@ -31,10 +31,18 @@ export class AccountsService {
         categoryId: dto.categoryId,
         color: dto.color,
         icon: dto.icon,
-        isAmountFixed: dto.type === AccountType.FIXED ? (dto.isAmountFixed ?? true) : true,
-        fixedAmount: dto.fixedAmount,
+        isAmountFixed:
+          dto.type === AccountType.FIXED
+            ? dto.isAmountFixed ?? true
+            : dto.type === AccountType.ONE_TIME
+            ? true
+            : true,
+        fixedAmount:
+          dto.type === AccountType.ONE_TIME
+            ? dto.oneTimeAmount ?? dto.fixedAmount
+            : dto.fixedAmount,
         dueDay: dto.dueDay,
-        recurrence: dto.recurrence || 'MONTHLY',
+        recurrence: dto.type === AccountType.FIXED ? dto.recurrence || 'MONTHLY' : 'MONTHLY',
         budgetAmount: dto.budgetAmount,
         totalInstallments: dto.totalInstallments,
         principalAmount: dto.principalAmount,
@@ -42,16 +50,26 @@ export class AccountsService {
         alertDaysBefore: dto.alertDaysBefore ?? 3,
         alertBudgetPercent: dto.alertBudgetPercent ?? 80,
         isActive: dto.isActive ?? true,
-        startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
-        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+        startDate: dto.oneTimeDate
+          ? new Date(dto.oneTimeDate)
+          : dto.startDate
+          ? new Date(dto.startDate)
+          : new Date(),
+        endDate: dto.type === AccountType.ONE_TIME ? undefined : dto.endDate ? new Date(dto.endDate) : undefined,
       },
       include: {
         category: true,
       },
     });
 
-    // Automatically generate instances for FIXED, BUDGET and FINANCING accounts
-    if ((account.type === AccountType.FIXED || account.type === AccountType.BUDGET || account.type === AccountType.FINANCING) && account.isActive) {
+    // Automatically generate instances
+    if (
+      (account.type === AccountType.FIXED ||
+        account.type === AccountType.BUDGET ||
+        account.type === AccountType.FINANCING ||
+        account.type === AccountType.ONE_TIME) &&
+      account.isActive
+    ) {
       await this.accountInstancesService.generateInstancesForAccount(account.id);
     }
 

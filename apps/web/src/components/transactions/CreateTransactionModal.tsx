@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTransactionsStore } from '../../stores/transactionsStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
-import { useInstancesStore } from '../../stores/instancesStore';
-import { useAccountsStore, AccountType } from '../../stores/accountsStore';
 
 interface CreateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   accountInstanceId?: string;
-  accountId?: string;
   accountName?: string;
 }
 
@@ -16,13 +13,10 @@ export default function CreateTransactionModal({
   isOpen,
   onClose,
   accountInstanceId,
-  accountId,
   accountName,
 }: CreateTransactionModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
   const { createTransaction, isLoading } = useTransactionsStore();
-  const { instances, fetchInstances } = useInstancesStore();
-  const { accounts } = useAccountsStore();
 
   const [formData, setFormData] = useState({
     amount: '',
@@ -56,6 +50,11 @@ export default function CreateTransactionModal({
 
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       setError('Please enter a valid amount');
+      return;
+    }
+
+    if (!accountInstanceId) {
+      setError('No account instance selected');
       return;
     }
 

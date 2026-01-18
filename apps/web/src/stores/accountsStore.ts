@@ -5,6 +5,7 @@ export enum AccountType {
   FIXED = 'FIXED',
   BUDGET = 'BUDGET',
   FINANCING = 'FINANCING',
+  ONE_TIME = 'ONE_TIME',
 }
 
 export enum RecurrenceType {

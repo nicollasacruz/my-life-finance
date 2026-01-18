@@ -187,6 +187,7 @@ enum AccountType {
   FIXED
   BUDGET
   FINANCING
+  ONE_TIME
 }
 
 enum RecurrenceType {

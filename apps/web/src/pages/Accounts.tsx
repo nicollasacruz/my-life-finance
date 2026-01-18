@@ -3,6 +3,7 @@ import { useWorkspaceStore } from '../stores/workspaceStore';
 import { useAccountsStore, AccountType } from '../stores/accountsStore';
 import { useCategoriesStore } from '../stores/categoriesStore';
 import CreateAccountModal from '../components/accounts/CreateAccountModal';
+import EditAccountModal from '../components/accounts/EditAccountModal';
 import { AuthenticatedLayout } from '../components/layout/AuthenticatedLayout';
 
 export default function Accounts() {
@@ -11,6 +12,7 @@ export default function Accounts() {
   const { categories, fetchCategories } = useCategoriesStore();
   const [filterType, setFilterType] = useState<AccountType | 'ALL'>('ALL');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [accountToEdit, setAccountToEdit] = useState<any>(null);
 
   useEffect(() => {
     if (activeWorkspace) {
@@ -69,7 +71,7 @@ export default function Accounts() {
         {/* Filter Tabs */}
         <div className="border-b border-gray-200 mb-6 overflow-x-auto px-1">
           <nav className="-mb-px flex min-w-max gap-4">
-            {['ALL', 'FIXED', 'BUDGET', 'FINANCING'].map((type) => (
+            {['ALL', 'FIXED', 'BUDGET', 'FINANCING', 'ONE_TIME'].map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type as any)}
@@ -85,7 +87,9 @@ export default function Accounts() {
                   ? 'Fixas'
                   : type === 'BUDGET'
                   ? 'Variáv.'
-                  : 'Financ.'}
+                  : type === 'FINANCING'
+                  ? 'Financ.'
+                  : 'Únicas'}
                 <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100">
                   {type === 'ALL'
                     ? accounts.length
@@ -127,7 +131,7 @@ export default function Accounts() {
           {filteredAccounts.map((account) => (
             <div
               key={account.id}
-              className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+              className="bg-white overflow-hidden rounded-lg border border-gray-200"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -145,17 +149,33 @@ export default function Accounts() {
                       )}
                     </div>
                   </div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      account.type === 'FIXED'
-                        ? 'bg-purple-100 text-purple-800'
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        account.type === 'FIXED'
+                          ? 'bg-purple-100 text-purple-800'
+                          : account.type === 'BUDGET'
+                          ? 'bg-green-100 text-green-800'
+                          : account.type === 'FINANCING'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-orange-100 text-orange-800'
+                      }`}
+                    >
+                      {account.type === 'FIXED'
+                        ? 'Fixa'
                         : account.type === 'BUDGET'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {account.type === 'FIXED' ? 'Fixa' : account.type === 'BUDGET' ? 'Variável' : 'Financiamento'}
-                  </span>
+                        ? 'Variável'
+                        : account.type === 'FINANCING'
+                        ? 'Financiamento'
+                        : 'Única'}
+                    </span>
+                    <button
+                      onClick={() => setAccountToEdit(account)}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Editar
+                    </button>
+                  </div>
                 </div>
 
                 {account.description && (
@@ -261,6 +281,15 @@ export default function Accounts() {
         onClose={() => setIsCreateModalOpen(false)}
         categories={categories}
       />
+
+      {accountToEdit && (
+        <EditAccountModal
+          isOpen={Boolean(accountToEdit)}
+          onClose={() => setAccountToEdit(null)}
+          categories={categories}
+          account={accountToEdit}
+        />
+      )}
       </div>
     </AuthenticatedLayout>
   );

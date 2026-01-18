@@ -77,24 +77,41 @@ interface YearlyOverview {
   monthlyData: Array<{
     month: number;
     fixedTotal: number;
+    budgetTotal: number;
     budgetSpent: number;
     total: number;
   }>;
   yearTotal: number;
 }
 
+interface CategoryReport {
+  year: number;
+  categories: Array<{
+    id: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    budgetTotal: number;
+    spent: number;
+    percentage: number;
+  }>;
+}
+
 interface DashboardState {
   monthlyOverview: MonthlyOverview | null;
   yearlyOverview: YearlyOverview | null;
+  categoryReport: CategoryReport | null;
   isLoading: boolean;
   error: string | null;
   fetchMonthlyOverview: (workspaceId: string, year: number, month: number) => Promise<void>;
   fetchYearlyOverview: (workspaceId: string, year: number) => Promise<void>;
+  fetchCategoryReport: (workspaceId: string, year: number) => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
   monthlyOverview: null,
   yearlyOverview: null,
+  categoryReport: null,
   isLoading: false,
   error: null,
 
@@ -123,6 +140,21 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     } catch (error: any) {
       set({
         error: error.response?.data?.message || 'Failed to fetch yearly overview',
+        isLoading: false
+      });
+    }
+  },
+
+  fetchCategoryReport: async (workspaceId: string, year: number) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { data } = await api.get(
+        `/workspaces/${workspaceId}/dashboard/category-report?year=${year}`
+      );
+      set({ categoryReport: data, isLoading: false });
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || 'Failed to fetch category report',
         isLoading: false
       });
     }

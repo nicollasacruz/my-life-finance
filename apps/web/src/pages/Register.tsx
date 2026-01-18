@@ -1,11 +1,13 @@
 import { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 export function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const register = useAuthStore((state) => state.register);
 
   const [name, setName] = useState('');
@@ -14,6 +16,9 @@ export function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next') || '/';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,7 +38,19 @@ export function Register() {
 
     try {
       await register(email, password, name);
-      navigate('/');
+
+      const pendingInvite = localStorage.getItem('pendingInviteToken');
+      if (pendingInvite) {
+        try {
+          await api.post(`/invites/${pendingInvite}/accept`);
+          localStorage.removeItem('pendingInviteToken');
+        } catch (inviteErr: any) {
+          const msg = inviteErr?.response?.data?.message || 'Erro ao aceitar convite';
+          setError(msg);
+        }
+      }
+
+      navigate(next);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao registar');
     } finally {
@@ -108,7 +125,10 @@ export function Register() {
 
           <p className="text-center text-sm text-gray-600">
             Já tem conta?{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link
+              to={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
               Entrar
             </Link>
           </p>

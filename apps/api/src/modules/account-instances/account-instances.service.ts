@@ -102,7 +102,7 @@ export class AccountInstancesService {
       include: { workspace: true },
     });
 
-    const supportedTypes = [AccountType.FIXED, AccountType.BUDGET, AccountType.FINANCING];
+    const supportedTypes = [AccountType.FIXED, AccountType.BUDGET, AccountType.FINANCING, AccountType.ONE_TIME];
     if (!account || !supportedTypes.includes(account.type) || !account.isActive) {
       return [];
     }
@@ -159,6 +159,42 @@ export class AccountInstancesService {
 
         instances.push(instance);
       }
+    } else if (account.type === AccountType.ONE_TIME) {
+      const start = account.startDate ? new Date(account.startDate) : today;
+      const year = start.getFullYear();
+      const month = start.getMonth() + 1;
+
+      const existing = await this.prisma.accountInstance.findFirst({
+        where: {
+          accountId: account.id,
+          year,
+          month,
+        },
+      });
+
+      if (existing) return [existing];
+
+      const dueDate = account.startDate ? new Date(account.startDate) : new Date();
+
+      const instance = await this.prisma.accountInstance.create({
+        data: {
+          accountId: account.id,
+          year,
+          month,
+          dueDate,
+          amount: account.fixedAmount,
+          status: FixedAccountStatus.OPEN,
+        },
+        include: {
+          account: {
+            include: {
+              category: true,
+            },
+          },
+        },
+      });
+
+      instances.push(instance);
     } else {
       // For FIXED and BUDGET accounts, generate from current month to end of year
       const currentYear = today.getFullYear();

@@ -1,50 +1,62 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useAccountsStore, AccountType, RecurrenceType } from '../../stores/accountsStore';
 
-interface CreateAccountModalProps {
+interface EditAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories: Array<{ id: string; name: string; color: string; icon?: string }>;
+  account: any;
 }
 
-export default function CreateAccountModal({ isOpen, onClose, categories }: CreateAccountModalProps) {
+export default function EditAccountModal({ isOpen, onClose, categories, account }: EditAccountModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
-  const { createAccount } = useAccountsStore();
+  const { updateAccount } = useAccountsStore();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: AccountType.FIXED,
-    categoryId: '',
-    color: '#3B82F6',
-    icon: '',
-    isAmountFixed: true,
-    fixedAmount: '',
-    dueDay: '',
-    recurrence: RecurrenceType.MONTHLY,
-    budgetAmount: '',
-    totalInstallments: '',
-    principalAmount: '',
-    interestRate: '',
-    startDate: new Date().toISOString().split('T')[0],
-    oneTimeAmount: '',
-    oneTimeDate: new Date().toISOString().split('T')[0],
-    alertDaysBefore: '3',
-    alertBudgetPercent: '80',
-    isActive: true,
-  });
+  const initialForm = useMemo(
+    () => ({
+      name: account?.name || '',
+      description: account?.description || '',
+      type: account?.type || AccountType.FIXED,
+      categoryId: account?.categoryId || '',
+      color: account?.color || '#3B82F6',
+      icon: account?.icon || '',
+    isAmountFixed: account?.isAmountFixed ?? true,
+    fixedAmount: account?.fixedAmount ? String(account.fixedAmount) : '',
+    dueDay: account?.dueDay ? String(account.dueDay) : '',
+    recurrence: account?.recurrence || RecurrenceType.MONTHLY,
+    budgetAmount: account?.budgetAmount ? String(account.budgetAmount) : '',
+    totalInstallments: account?.totalInstallments ? String(account.totalInstallments) : '',
+    principalAmount: account?.principalAmount ? String(account.principalAmount) : '',
+    interestRate: account?.interestRate ? String(account.interestRate) : '',
+    oneTimeAmount: account?.oneTimeAmount ? String(account.oneTimeAmount) : '',
+    oneTimeDate: account?.oneTimeDate
+      ? account.oneTimeDate.substring(0, 10)
+      : account?.startDate
+      ? account.startDate.substring(0, 10)
+      : new Date().toISOString().split('T')[0],
+    startDate: account?.startDate ? account.startDate.substring(0, 10) : new Date().toISOString().split('T')[0],
+    endDate: account?.endDate ? account.endDate.substring(0, 10) : '',
+      alertDaysBefore: account?.alertDaysBefore ? String(account.alertDaysBefore) : '3',
+      alertBudgetPercent: account?.alertBudgetPercent ? String(account.alertBudgetPercent) : '80',
+      isActive: account?.isActive ?? true,
+    }),
+    [account]
+  );
 
+  const [formData, setFormData] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setFormData(initialForm);
+  }, [initialForm]);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
     if (!isOpen) return;
-
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -52,7 +64,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeWorkspace) return;
+    if (!activeWorkspace || !account) return;
 
     setIsSubmitting(true);
     setError('');
@@ -102,58 +114,29 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
         if (formData.startDate) {
           payload.startDate = new Date(formData.startDate).toISOString();
         }
-        // Calculate end date based on totalInstallments
-        if (formData.totalInstallments && formData.startDate) {
-          const endDate = new Date(formData.startDate);
-          endDate.setMonth(endDate.getMonth() + parseInt(formData.totalInstallments));
-          payload.endDate = endDate.toISOString();
-        }
         payload.recurrence = RecurrenceType.MONTHLY;
         payload.alertDaysBefore = parseInt(formData.alertDaysBefore);
       } else if (formData.type === AccountType.ONE_TIME) {
         if (formData.oneTimeAmount) {
           payload.oneTimeAmount = parseFloat(formData.oneTimeAmount);
+          payload.fixedAmount = parseFloat(formData.oneTimeAmount);
         }
         if (formData.oneTimeDate) {
           payload.oneTimeDate = new Date(formData.oneTimeDate).toISOString();
+          payload.startDate = payload.oneTimeDate;
         }
       }
 
-      await createAccount(activeWorkspace.id, payload);
-
-      // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        type: AccountType.FIXED,
-        categoryId: '',
-        color: '#3B82F6',
-        icon: '',
-        isAmountFixed: true,
-        fixedAmount: '',
-        dueDay: '',
-        recurrence: RecurrenceType.MONTHLY,
-        budgetAmount: '',
-        totalInstallments: '',
-        principalAmount: '',
-        interestRate: '',
-        startDate: new Date().toISOString().split('T')[0],
-        oneTimeAmount: '',
-        oneTimeDate: new Date().toISOString().split('T')[0],
-        alertDaysBefore: '3',
-        alertBudgetPercent: '80',
-        isActive: true,
-      });
-
+      await updateAccount(activeWorkspace.id, account.id, payload);
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao criar conta');
+      setError(err.response?.data?.message || 'Erro ao atualizar conta');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !account) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -164,7 +147,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Nova Conta</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Editar Conta</h3>
                 <button
                   type="button"
                   onClick={onClose}
@@ -610,7 +593,7 @@ export default function CreateAccountModal({ isOpen, onClose, categories }: Crea
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Criando...' : 'Criar Conta'}
+                {isSubmitting ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
           </form>

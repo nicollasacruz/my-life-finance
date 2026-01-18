@@ -71,7 +71,7 @@ export class DashboardService {
 
     // Calculate totals for BUDGET accounts from transactions
     const budgetInstances = instances.filter((i) => i.account.type === AccountType.BUDGET);
-    const budgetTotal = budgetAccounts.reduce((sum, acc) => sum + Number(acc.budgetAmount || 0), 0);
+    const budgetTotal = budgetInstances.reduce((sum, inst) => sum + Number(inst.budgetAmount || 0), 0);
 
     const allTransactions = budgetInstances.flatMap((i) => i.transactions);
     const budgetSpent = allTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
@@ -184,14 +184,74 @@ export class DashboardService {
     };
   }
 
+  async getCategoryReport(workspaceId: string, year: number) {
+    // Pull all BUDGET instances for the given year with transactions
+    const instances = await this.prisma.accountInstance.findMany({
+      where: {
+        account: {
+          workspaceId,
+          type: AccountType.BUDGET,
+        },
+        year,
+      },
+      include: {
+        account: {
+          include: {
+            category: {
+              select: { id: true, name: true, color: true, icon: true },
+            },
+          },
+        },
+        transactions: true,
+      },
+    });
+
+    const breakdown: Record<
+      string,
+      { name: string; color?: string; icon?: string; budgetTotal: number; spent: number }
+    > = {};
+
+    instances.forEach((inst) => {
+      if (!inst.account.category) return;
+      const id = inst.account.category.id;
+      if (!breakdown[id]) {
+        breakdown[id] = {
+          name: inst.account.category.name,
+          color: inst.account.category.color,
+          icon: inst.account.category.icon || undefined,
+          budgetTotal: 0,
+          spent: 0,
+        };
+      }
+      breakdown[id].budgetTotal += Number(inst.budgetAmount || 0);
+      breakdown[id].spent += inst.transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+    });
+
+    return {
+      year,
+      categories: Object.entries(breakdown).map(([id, data]) => ({
+        id,
+        ...data,
+        percentage: data.budgetTotal > 0 ? (data.spent / data.budgetTotal) * 100 : 0,
+      })),
+    };
+  }
+
   async getYearlyOverview(workspaceId: string, year: number) {
-    const monthlyData = [];
+    const monthlyData: Array<{
+      month: number;
+      fixedTotal: number;
+      budgetTotal: number;
+      budgetSpent: number;
+      total: number;
+    }> = [];
 
     for (let month = 1; month <= 12; month++) {
       const data = await this.getMonthlyOverview(workspaceId, year, month);
       monthlyData.push({
         month,
         fixedTotal: data.fixed.total,
+        budgetTotal: data.budget.total,
         budgetSpent: data.budget.spent,
         total: data.fixed.total + data.budget.spent,
       });

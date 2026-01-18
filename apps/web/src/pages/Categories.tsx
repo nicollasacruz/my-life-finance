@@ -54,19 +54,19 @@ export default function Categories() {
     <AuthenticatedLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Categorias</h1>
             <p className="mt-1 text-sm text-gray-500">
               Organize suas contas em categorias
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-col sm:flex-row sm:items-center">
             {categories.length === 0 && (
               <button
                 onClick={handleSeedDefaults}
                 disabled={isSeeding}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
               >
                 {isSeeding ? (
                   <>
@@ -85,7 +85,7 @@ export default function Categories() {
             )}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -130,7 +130,7 @@ export default function Categories() {
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow group"
+                className="bg-white rounded-lg border border-gray-200 p-4 group"
               >
                 <div className="flex flex-col items-center text-center">
                   <div
