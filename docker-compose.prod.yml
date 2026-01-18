@@ -71,6 +71,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: https://${API_DOMAIN}/api
     container_name: mlf-web-prod
     restart: always
     environment:

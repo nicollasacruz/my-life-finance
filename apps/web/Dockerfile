@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Build argument for API URL
+ARG VITE_API_URL=http://localhost:3000/api
+
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
@@ -18,8 +21,9 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY apps/web/ ./apps/web/
 
-# Build the application
+# Build the application with API URL
 WORKDIR /app/apps/web
+ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm build
 
 # Production stage - nginx to serve static files
