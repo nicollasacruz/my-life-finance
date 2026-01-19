@@ -139,27 +139,24 @@ export function MembersSection() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 space-y-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Membros</h2>
           <p className="text-sm text-gray-500">Gerencie roles e convites.</p>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-[1.4fr,220px,160px] gap-3">
+        <div className="flex flex-wrap gap-2 items-center">
           <input
             type="email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="email@exemplo.com"
-            className="w-full h-11 px-3.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value as Member['role'])}
-            className="h-11 px-3.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {Object.entries(roleLabels).map(([key, label]) => (
               <option key={key} value={key}>
@@ -170,42 +167,34 @@ export function MembersSection() {
           <button
             onClick={sendInvite}
             disabled={saving || !inviteEmail}
-            className="h-11 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
             Enviar convite
           </button>
         </div>
-        <p className="text-xs text-gray-500">
-          O convite expira em 7 dias. Roles: Owner e Admin têm acesso total; Viewer é somente leitura.
-        </p>
       </div>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
       )}
 
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-800">Membros</h3>
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-700">Membros</h3>
+        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {isLoading ? (
             <div className="p-4 text-sm text-gray-500">Carregando...</div>
           ) : members.length === 0 ? (
             <div className="p-4 text-sm text-gray-500">Nenhum membro</div>
           ) : (
-            members.map((member, index) => (
-              <div
-                key={member.id}
-                className={`px-4 py-3 flex items-center justify-between gap-3 ${index !== members.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
+            members.map((member) => (
+              <div key={member.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-semibold">
                     {member.user.name?.[0]?.toUpperCase() || member.user.email[0].toUpperCase()}
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 truncate">
-                      {member.user.name || member.user.email}
-                    </div>
-                    <div className="text-xs text-gray-500 truncate">{member.user.email}</div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{member.user.name || member.user.email}</div>
+                    <div className="text-xs text-gray-500">{member.user.email}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -213,7 +202,7 @@ export function MembersSection() {
                     value={member.role}
                     onChange={(e) => updateRole(member.id, e.target.value as Member['role'])}
                     disabled={member.role === 'OWNER' || saving}
-                    className="px-3 py-2 h-10 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-sm"
                   >
                     {Object.entries(roleLabels).map(([key, label]) => (
                       <option key={key} value={key}>
@@ -225,7 +214,7 @@ export function MembersSection() {
                     <button
                       onClick={() => removeMember(member.id)}
                       disabled={saving}
-                      className="px-3 py-2 h-10 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      className="text-sm text-red-600 hover:text-red-800"
                     >
                       Remover
                     </button>
@@ -237,29 +226,26 @@ export function MembersSection() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-800">Convites</h3>
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-700">Convites</h3>
+        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {invites.length === 0 ? (
             <div className="p-4 text-sm text-gray-500">Nenhum convite enviado</div>
           ) : (
-            invites.map((invite, index) => (
-              <div
-                key={invite.id}
-                className={`px-4 py-3 flex items-center justify-between gap-3 ${index !== invites.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-gray-900 truncate">{invite.email}</div>
+            invites.map((invite) => (
+              <div key={invite.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-gray-900">{invite.email}</div>
                   <div className="text-xs text-gray-500">{roleLabels[invite.role]}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs px-2.5 py-1 rounded-full capitalize border ${
+                    className={`text-xs px-2 py-1 rounded-full capitalize ${
                       invite.status === 'PENDING'
-                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
                         : invite.status === 'ACCEPTED'
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-gray-50 text-gray-600 border-gray-200'
+                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        : 'bg-gray-50 text-gray-700 border border-gray-200'
                     }`}
                   >
                     {invite.status.toLowerCase()}
@@ -269,14 +255,14 @@ export function MembersSection() {
                       <button
                         onClick={() => resendInvite(invite.token)}
                         disabled={saving}
-                        className="px-3 py-2 h-10 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                        className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         Reenviar
                       </button>
                       <button
                         onClick={() => cancelInvite(invite.id)}
                         disabled={saving}
-                        className="px-3 py-2 h-10 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        className="text-sm text-red-600 hover:text-red-800"
                       >
                         Cancelar
                       </button>
