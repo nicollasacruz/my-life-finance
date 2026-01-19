@@ -24,11 +24,12 @@ export class InvitesService {
     const port = Number(this.config.get<string>('SMTP_PORT') || 1025);
     const user = this.config.get<string>('SMTP_USER');
     const pass = this.config.get<string>('SMTP_PASS');
+    const secure = port === 465;
 
     this.transporter = nodemailer.createTransport({
       host,
       port,
-      secure: false,
+      secure,
       auth: user && pass ? { user, pass } : undefined,
     });
 
