@@ -56,16 +56,52 @@ export class InvitesService {
         to: invite.email,
         subject: 'Você foi convidado para um workspace no My Life Finance',
         text: [
-          `Olá!`,
-          `${invite.invitedBy} convidou você para entrar no workspace "${invite.workspaceName}".`,
-          `Acesse o link para aceitar: ${inviteUrl}`,
-        ].join('\n'),
+          'Olá!',
+          `${invite.invitedBy} convidou você para entrar no workspace "${invite.workspaceName}" no My Life Finance.`,
+          'Aceite o convite para colaborar nas finanças compartilhadas.',
+          `Abrir convite: ${inviteUrl}`,
+          'Se você não esperava este email, basta ignorar.',
+        ].join('\n\n'),
         html: `
-          <p>Olá!</p>
-          <p><strong>${invite.invitedBy}</strong> convidou você para entrar no workspace <strong>${invite.workspaceName}</strong>.</p>
-          <p><a href="${inviteUrl}">Clique aqui para aceitar o convite</a></p>
-          <p>Ou copie e cole este link no seu navegador:</p>
-          <code>${inviteUrl}</code>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;padding:24px 0;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:32px;font-family:Arial, sans-serif;color:#111827;box-shadow:0 10px 35px rgba(15, 23, 42, 0.08);">
+                  <tr>
+                    <td style="text-align:center;padding-bottom:24px;">
+                      <div style="display:inline-flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:12px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;">ML</div>
+                        <span style="font-size:18px;font-weight:700;">My Life Finance</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:16px;line-height:1.6;padding-bottom:16px;">
+                      <p style="margin:0 0 12px 0;">Olá!</p>
+                      <p style="margin:0 0 12px 0;"><strong>${invite.invitedBy}</strong> convidou você para entrar no workspace <strong>${invite.workspaceName}</strong> no My Life Finance.</p>
+                      <p style="margin:0 0 12px 0;">Aceite o convite para colaborar nas finanças compartilhadas.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:center;padding:12px 0 20px 0;">
+                      <a href="${inviteUrl}" style="display:inline-block;background:#1d4ed8;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:700;">Aceitar convite</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:14px;color:#4b5563;padding-top:8px;padding-bottom:16px;">
+                      Ou copie e cole este link no navegador:<br />
+                      <span style="display:inline-block;margin-top:6px;padding:8px 10px;background:#f3f4f6;border-radius:8px;font-family:monospace;color:#1f2937;">${inviteUrl}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:16px;">
+                      Se você não esperava este email, pode ignorá-lo. O convite expira automaticamente em 7 dias.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         `,
       });
     } catch (err) {
