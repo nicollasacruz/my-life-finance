@@ -22,6 +22,7 @@ export function Dashboard() {
   const fixed = monthlyOverview?.fixed || { total: 0, paid: 0, pending: 0, count: 0 };
   const budget = monthlyOverview?.budget || { total: 0, spent: 0, remaining: 0, percentage: 0, count: 0 };
   const financing = monthlyOverview?.financing || { total: 0, paid: 0, pending: 0, count: 0 };
+  const monthlyTotal = monthlyOverview?.monthlyTotal || 0;
   const categoryBreakdown = monthlyOverview?.categoryBreakdown || [];
   const upcomingInstances = monthlyOverview?.upcomingInstances || [];
 
@@ -64,7 +65,12 @@ export function Dashboard() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 mb-6">
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-lg shadow-lg">
+              <h3 className="text-sm font-medium text-indigo-100 mb-2">Total do Mês</h3>
+              <p className="text-3xl font-bold text-white">€{monthlyTotal.toFixed(2)}</p>
+              <p className="text-xs text-indigo-200 mt-1">Fixas + Budget + Financ. + Único</p>
+            </div>
             <div className="bg-white p-5 rounded-lg border border-gray-200">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Contas Fixas</h3>
               <p className="text-3xl font-bold text-gray-900">€{fixed.total.toFixed(2)}</p>

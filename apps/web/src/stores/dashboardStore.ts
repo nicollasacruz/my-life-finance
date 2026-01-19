@@ -67,6 +67,13 @@ interface MonthlyOverview {
     pending: number;
     count: number;
   };
+  oneTime: {
+    total: number;
+    paid: number;
+    pending: number;
+    count: number;
+  };
+  monthlyTotal: number;
   categoryBreakdown: CategoryBreakdown[];
   recentTransactions: RecentTransaction[];
   upcomingInstances: UpcomingInstance[];
