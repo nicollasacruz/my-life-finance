@@ -10,13 +10,14 @@ export function Login() {
   const location = useLocation();
   const login = useAuthStore((state) => state.login);
 
-  const [email, setEmail] = useState('');
+  const params = new URLSearchParams(location.search);
+  const next = params.get('next') || '/';
+  const emailFromUrl = params.get('email') || '';
+
+  const [email, setEmail] = useState(emailFromUrl);
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const params = new URLSearchParams(location.search);
-  const next = params.get('next') || '/';
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -52,7 +53,7 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-lg w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
             My Life Finance

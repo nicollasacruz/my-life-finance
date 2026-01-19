@@ -32,6 +32,8 @@ export function Invite() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [accepting, setAccepting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -69,6 +71,21 @@ export function Invite() {
     }
   };
 
+  const resend = async () => {
+    if (!token) return;
+    setResending(true);
+    setError('');
+    setResendSuccess(false);
+    try {
+      await api.post(`/invites/${token}/resend`);
+      setResendSuccess(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Erro ao reenviar email');
+    } finally {
+      setResending(false);
+    }
+  };
+
   const isInvalid = invite && invite.status !== 'PENDING';
 
   return (
@@ -87,6 +104,12 @@ export function Invite() {
           {error && !loading && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+
+          {resendSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+              Email reenviado com sucesso!
             </div>
           )}
 
@@ -111,8 +134,24 @@ export function Invite() {
               )}
 
               {isInvalid && (
-                <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm">
-                  Este convite não está mais ativo (status: {invite.status.toLowerCase()}).
+                <div className="space-y-3">
+                  {invite.status === 'ACCEPTED' ? (
+                    <>
+                      <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                        Este convite já foi aceito!
+                      </div>
+                      <Link
+                        to={`/workspace/${invite.workspace.slug}`}
+                        className="w-full inline-flex justify-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        Ir para o workspace
+                      </Link>
+                    </>
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm">
+                      Este convite não está mais ativo (status: {invite.status.toLowerCase()}).
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -126,19 +165,28 @@ export function Invite() {
                     >
                       {accepting ? 'Aceitando...' : 'Aceitar convite'}
                     </button>
-                  ) : (
-                    <div className="space-y-2">
+                  ) : invite.isRegistered ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        Já existe uma conta com este email. Faça login para aceitar o convite.
+                      </p>
                       <Link
-                        to={`/login?next=/invite/${token}`}
+                        to={`/login?next=/invite/${token}&email=${encodeURIComponent(invite.email)}`}
                         className="w-full inline-flex justify-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700"
                       >
-                        Já tenho conta
+                        Fazer login
                       </Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">
+                        Crie uma conta para aceitar o convite.
+                      </p>
                       <Link
-                        to={`/register?next=/invite/${token}`}
-                        className="w-full inline-flex justify-center px-4 py-2 rounded-lg text-blue-700 border border-blue-200 hover:bg-blue-50"
+                        to={`/register?next=/invite/${token}&email=${encodeURIComponent(invite.email)}`}
+                        className="w-full inline-flex justify-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700"
                       >
-                        Criar conta e aceitar
+                        Criar conta
                       </Link>
                     </div>
                   )}

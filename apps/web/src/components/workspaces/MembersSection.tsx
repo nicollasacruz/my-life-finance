@@ -19,6 +19,7 @@ interface Invite {
   email: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
   status: string;
+  token: string;
   expiresAt?: string;
   createdAt: string;
 }
@@ -120,6 +121,18 @@ export function MembersSection() {
       await load();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erro ao cancelar convite');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resendInvite = async (token: string) => {
+    setSaving(true);
+    setError('');
+    try {
+      await api.post(`/invites/${token}/resend`);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Erro ao reenviar convite');
     } finally {
       setSaving(false);
     }
@@ -238,13 +251,22 @@ export function MembersSection() {
                     {invite.status.toLowerCase()}
                   </span>
                   {invite.status === 'PENDING' && (
-                    <button
-                      onClick={() => cancelInvite(invite.id)}
-                      disabled={saving}
-                      className="text-sm text-red-600 hover:text-red-800"
-                    >
-                      Cancelar
-                    </button>
+                    <>
+                      <button
+                        onClick={() => resendInvite(invite.token)}
+                        disabled={saving}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Reenviar
+                      </button>
+                      <button
+                        onClick={() => cancelInvite(invite.id)}
+                        disabled={saving}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        Cancelar
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
