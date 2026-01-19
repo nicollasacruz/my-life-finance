@@ -49,6 +49,7 @@ export class DashboardService {
     const fixedAccounts = accounts.filter((a) => a.type === AccountType.FIXED);
     const budgetAccounts = accounts.filter((a) => a.type === AccountType.BUDGET);
     const financingAccounts = accounts.filter((a) => a.type === 'FINANCING');
+    const oneTimeAccounts = accounts.filter((a) => a.type === 'ONE_TIME');
 
     // Calculate totals for FIXED accounts
     const fixedInstances = instances.filter((i) => i.account.type === AccountType.FIXED);
@@ -129,6 +130,29 @@ export class DashboardService {
       .filter((i) => i.status === 'OPEN')
       .reduce((sum, i) => sum + Number(i.amount || 0), 0);
 
+    // Calculate totals for ONE_TIME accounts
+    const oneTimeInstances = instances.filter((i) => i.account.type === 'ONE_TIME');
+    const oneTimeTotal = oneTimeInstances.reduce((sum, inst) => {
+      if (inst.status === 'PAID') {
+        return sum + Number(inst.paidAmount || 0);
+      } else if (inst.status === 'OPEN') {
+        return sum + Number(inst.amount || 0);
+      }
+      return sum;
+    }, 0);
+
+    const oneTimePaid = oneTimeInstances
+      .filter((i) => i.status === 'PAID')
+      .reduce((sum, i) => sum + Number(i.paidAmount || 0), 0);
+
+    const oneTimePending = oneTimeInstances
+      .filter((i) => i.status === 'OPEN')
+      .reduce((sum, i) => sum + Number(i.amount || 0), 0);
+
+    // Calculate monthly total: FIXED + max(BUDGET instance, BUDGET transactions) + FINANCING + ONE_TIME
+    const budgetForTotal = Math.max(budgetTotal, budgetSpent);
+    const monthlyTotal = fixedTotal + budgetForTotal + financingTotal + oneTimeTotal;
+
     // Upcoming instances
     const upcomingInstances = instances
       .filter((i) => i.status === 'OPEN')
@@ -161,6 +185,13 @@ export class DashboardService {
         pending: financingPending,
         count: financingAccounts.length,
       },
+      oneTime: {
+        total: oneTimeTotal,
+        paid: oneTimePaid,
+        pending: oneTimePending,
+        count: oneTimeAccounts.length,
+      },
+      monthlyTotal,
       categoryBreakdown: Object.values(categorySpending),
       recentTransactions: recentTransactions.map((t) => ({
         id: t.id,
