@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCategoriesStore } from '../../stores/categoriesStore';
 
 interface CreateCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialCategory?: {
+    id: string;
+    name: string;
+    color: string;
+    icon?: string;
+  } | null;
+  onSaved?: (mode: 'create' | 'edit') => void;
 }
 
 const emojiOptions = [
@@ -22,9 +29,10 @@ const colorOptions = [
   '#64748B', '#6B7280', '#9CA3AF',
 ];
 
-export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProps) {
+export default function CreateCategoryModal({ isOpen, onClose, initialCategory, onSaved }: CreateCategoryModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
-  const { createCategory } = useCategoriesStore();
+  const { createCategory, updateCategory } = useCategoriesStore();
+  const isEdit = Boolean(initialCategory);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,6 +43,17 @@ export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryM
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: initialCategory?.name || '',
+        color: initialCategory?.color || '#3B82F6',
+        icon: initialCategory?.icon || '📌',
+      });
+      setError('');
+    }
+  }, [initialCategory, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace) return;
@@ -43,7 +62,13 @@ export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryM
     setError('');
 
     try {
-      await createCategory(activeWorkspace.id, formData);
+      if (isEdit && initialCategory) {
+        await updateCategory(activeWorkspace.id, initialCategory.id, formData);
+        onSaved?.('edit');
+      } else {
+        await createCategory(activeWorkspace.id, formData);
+        onSaved?.('create');
+      }
 
       // Reset form
       setFormData({
@@ -54,7 +79,7 @@ export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryM
 
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao criar categoria');
+      setError(err.response?.data?.message || 'Erro ao salvar categoria');
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +95,12 @@ export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryM
         <div className="inline-block w-full max-w-md my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
           <form onSubmit={handleSubmit}>
             <div className="px-6 py-5 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">Nova Categoria</h3>
+              <h3 className="text-xl font-semibold text-gray-900">
+                {isEdit ? 'Editar Categoria' : 'Nova Categoria'}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {isEdit ? 'Atualize o nome, ícone ou cor da categoria.' : 'Crie uma categoria para organizar suas contas.'}
+              </p>
             </div>
 
             <div className="px-6 py-6 space-y-6">
@@ -165,7 +195,7 @@ export default function CreateCategoryModal({ isOpen, onClose }: CreateCategoryM
                 disabled={isSubmitting}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Criando...' : 'Criar Categoria'}
+                {isSubmitting ? (isEdit ? 'Salvando...' : 'Criando...') : isEdit ? 'Salvar alterações' : 'Criar Categoria'}
               </button>
             </div>
           </form>
