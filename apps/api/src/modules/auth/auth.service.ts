@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailService } from '../../email/email.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -31,7 +32,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {
     this.accessTtl = this.configService.get<string>('JWT_EXPIRES_IN') || '15m';
     this.refreshTtl = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
@@ -70,6 +72,12 @@ export class AuthService {
           },
         },
       },
+    });
+
+    // Send welcome email (async, don't block registration)
+    this.emailService.sendWelcomeEmail({
+      email: user.email,
+      name: user.name || user.email.split('@')[0],
     });
 
     return this.issueTokens(user);
