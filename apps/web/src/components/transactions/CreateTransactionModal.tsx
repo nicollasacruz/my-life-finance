@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTransactionsStore } from '../../stores/transactionsStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useInstancesStore } from '../../stores/instancesStore';
 
 interface CreateTransactionModalProps {
   isOpen: boolean;
@@ -12,20 +13,41 @@ interface CreateTransactionModalProps {
 export default function CreateTransactionModal({
   isOpen,
   onClose,
-  accountInstanceId,
-  accountName,
+  accountInstanceId: initialAccountInstanceId,
+  accountName: _accountName,
 }: CreateTransactionModalProps) {
   const { activeWorkspace } = useWorkspaceStore();
   const { createTransaction, isLoading } = useTransactionsStore();
+  const { instances, fetchInstances } = useInstancesStore();
+
+  const budgetInstances = instances.filter(i => i.account.type === 'BUDGET');
 
   const [formData, setFormData] = useState({
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
     location: '',
+    accountInstanceId: '',
   });
 
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && activeWorkspace) {
+      const now = new Date();
+      fetchInstances(activeWorkspace.id, now.getFullYear(), now.getMonth() + 1);
+    }
+  }, [isOpen, activeWorkspace]);
+
+  useEffect(() => {
+    if (isOpen && budgetInstances.length > 0) {
+      const defaultInstanceId = initialAccountInstanceId || budgetInstances[0]?.id || '';
+      setFormData(prev => ({
+        ...prev,
+        accountInstanceId: defaultInstanceId,
+      }));
+    }
+  }, [isOpen, budgetInstances.length, initialAccountInstanceId]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -34,6 +56,7 @@ export default function CreateTransactionModal({
         description: '',
         date: new Date().toISOString().split('T')[0],
         location: '',
+        accountInstanceId: '',
       });
       setError(null);
     }
@@ -53,14 +76,14 @@ export default function CreateTransactionModal({
       return;
     }
 
-    if (!accountInstanceId) {
-      setError('No account instance selected');
+    if (!formData.accountInstanceId) {
+      setError('Selecione uma conta');
       return;
     }
 
     try {
       await createTransaction(activeWorkspace.id, {
-        accountInstanceId,
+        accountInstanceId: formData.accountInstanceId,
         amount: parseFloat(formData.amount),
         description: formData.description || undefined,
         date: new Date(formData.date).toISOString(),
@@ -89,9 +112,6 @@ export default function CreateTransactionModal({
               </svg>
             </button>
           </div>
-          {accountName && (
-            <p className="text-sm text-gray-500 mt-1">Conta: {accountName}</p>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -100,6 +120,25 @@ export default function CreateTransactionModal({
               {error}
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Conta *
+            </label>
+            <select
+              value={formData.accountInstanceId}
+              onChange={(e) => setFormData({ ...formData, accountInstanceId: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Selecione uma conta</option>
+              {budgetInstances.map((instance) => (
+                <option key={instance.id} value={instance.id}>
+                  {instance.account.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
