@@ -74,4 +74,10 @@ export class InvitesController {
   cancel(@Param('inviteId') inviteId: string) {
     return this.invitesService.cancel(inviteId);
   }
+
+  @ApiOperation({ summary: 'Resend invite email (public)' })
+  @Post('invites/:token/resend')
+  resend(@Param('token') token: string) {
+    return this.invitesService.resend(token);
+  }
 }

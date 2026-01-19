@@ -345,4 +345,48 @@ export class InvitesService {
 
     return { success: true, status: 'CANCELLED' };
   }
+
+  async resend(token: string) {
+    const invite = await this.prisma.workspaceInvite.findUnique({
+      where: { token },
+      include: {
+        workspace: true,
+        invitedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    if (invite.status !== 'PENDING') {
+      throw new BadRequestException('Invite is no longer valid');
+    }
+
+    if (new Date() > invite.expiresAt) {
+      await this.prisma.workspaceInvite.update({
+        where: { id: invite.id },
+        data: { status: 'EXPIRED' },
+      });
+      throw new BadRequestException('Invite has expired');
+    }
+
+    await this.sendInviteEmail({
+      email: invite.email,
+      token: invite.token,
+      workspaceName: invite.workspace.name,
+      invitedBy:
+        invite.invitedBy?.name ||
+        invite.invitedBy?.email ||
+        'Um membro do workspace',
+    });
+
+    return { success: true, message: 'Email reenviado com sucesso' };
+  }
 }
