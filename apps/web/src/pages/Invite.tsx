@@ -32,8 +32,6 @@ export function Invite() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [accepting, setAccepting] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -71,21 +69,6 @@ export function Invite() {
     }
   };
 
-  const resend = async () => {
-    if (!token) return;
-    setResending(true);
-    setError('');
-    setResendSuccess(false);
-    try {
-      await api.post(`/invites/${token}/resend`);
-      setResendSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao reenviar email');
-    } finally {
-      setResending(false);
-    }
-  };
-
   const isInvalid = invite && invite.status !== 'PENDING';
 
   return (
@@ -104,12 +87,6 @@ export function Invite() {
           {error && !loading && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
-            </div>
-          )}
-
-          {resendSuccess && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-              Email reenviado com sucesso!
             </div>
           )}
 
