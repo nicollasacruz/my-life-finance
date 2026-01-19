@@ -72,10 +72,19 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  useWorkspaceStore();
+  const { fetchWorkspaces, workspaces, isLoading } = useWorkspaceStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Ensure workspaces are loaded when the layout mounts
+  useEffect(() => {
+    if (!workspaces.length && !isLoading) {
+      fetchWorkspaces().catch((err) => {
+        console.error('Failed to load workspaces', err);
+      });
+    }
+  }, [fetchWorkspaces, workspaces.length, isLoading]);
 
   const handleLogout = async () => {
     await logout();
