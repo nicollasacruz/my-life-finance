@@ -319,7 +319,7 @@ export function Dashboard() {
                     <p className="text-gray-500 text-sm">Nenhum vencimento próximo</p>
                   </div>
                 ) : (
-                  upcomingInstances.slice(0, 5).map((instance) => {
+                  upcomingInstances.filter((i) => i.dueDate).slice(0, 5).map((instance) => {
                     const dueDate = new Date(instance.dueDate);
                     const today = new Date();
                     const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

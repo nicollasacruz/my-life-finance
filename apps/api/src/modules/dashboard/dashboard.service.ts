@@ -152,12 +152,12 @@ export class DashboardService {
     // Calculate monthly total: FIXED + BUDGET spent + FINANCING + ONE_TIME
     const monthlyTotal = fixedTotal + budgetSpent + financingTotal + oneTimeTotal;
 
-    // Upcoming instances
+    // Upcoming instances - only include accounts with a due date (exclude BUDGET)
     const upcomingInstances = instances
-      .filter((i) => i.status === 'OPEN')
+      .filter((i) => i.status === 'OPEN' && i.dueDate !== null)
       .sort((a, b) => {
-        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
-        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        const dateA = new Date(a.dueDate!).getTime();
+        const dateB = new Date(b.dueDate!).getTime();
         return dateA - dateB;
       })
       .slice(0, 10);
