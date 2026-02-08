@@ -149,9 +149,8 @@ export class DashboardService {
       .filter((i) => i.status === 'OPEN')
       .reduce((sum, i) => sum + Number(i.amount || 0), 0);
 
-    // Calculate monthly total: FIXED + max(BUDGET instance, BUDGET transactions) + FINANCING + ONE_TIME
-    const budgetForTotal = Math.max(budgetTotal, budgetSpent);
-    const monthlyTotal = fixedTotal + budgetForTotal + financingTotal + oneTimeTotal;
+    // Calculate monthly total: FIXED + BUDGET spent + FINANCING + ONE_TIME
+    const monthlyTotal = fixedTotal + budgetSpent + financingTotal + oneTimeTotal;
 
     // Upcoming instances
     const upcomingInstances = instances
@@ -284,7 +283,7 @@ export class DashboardService {
         fixedTotal: data.fixed.total,
         budgetTotal: data.budget.total,
         budgetSpent: data.budget.spent,
-        total: data.fixed.total + data.budget.spent,
+        total: data.monthlyTotal,
       });
     }
 
