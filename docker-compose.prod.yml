@@ -95,6 +95,28 @@ services:
     expose:
       - "80"
 
+  # Adminer - Database Visualizer
+  adminer:
+    image: adminer:latest
+    container_name: mlf-adminer-prod
+    restart: always
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=dracula
+      # nginx-proxy config
+      - VIRTUAL_HOST=db.mylifefinance.run.place
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=db.mylifefinance.run.place
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - reverse-proxy
+    expose:
+      - "8080"
+
 volumes:
   postgres_data:
     name: mlf-postgres-data

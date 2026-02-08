@@ -32,20 +32,29 @@ export default function CreateTransactionModal({
 
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch instances matching the selected date's month/year
   useEffect(() => {
     if (isOpen && activeWorkspace) {
-      const now = new Date();
-      fetchInstances(activeWorkspace.id, now.getFullYear(), now.getMonth() + 1);
+      const selectedDate = new Date(formData.date + 'T00:00:00');
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth() + 1;
+      fetchInstances(activeWorkspace.id, year, month);
     }
-  }, [isOpen, activeWorkspace]);
+  }, [isOpen, activeWorkspace, formData.date]);
 
   useEffect(() => {
     if (isOpen && budgetInstances.length > 0) {
-      const defaultInstanceId = initialAccountInstanceId || budgetInstances[0]?.id || '';
-      setFormData(prev => ({
-        ...prev,
-        accountInstanceId: defaultInstanceId,
-      }));
+      const currentId = formData.accountInstanceId;
+      const currentStillValid = budgetInstances.some(i => i.id === currentId);
+      if (!currentStillValid) {
+        const defaultInstanceId = initialAccountInstanceId && budgetInstances.some(i => i.id === initialAccountInstanceId)
+          ? initialAccountInstanceId
+          : budgetInstances[0]?.id || '';
+        setFormData(prev => ({
+          ...prev,
+          accountInstanceId: defaultInstanceId,
+        }));
+      }
     }
   }, [isOpen, budgetInstances.length, initialAccountInstanceId]);
 
@@ -86,7 +95,7 @@ export default function CreateTransactionModal({
         accountInstanceId: formData.accountInstanceId,
         amount: parseFloat(formData.amount),
         description: formData.description || undefined,
-        date: new Date(formData.date).toISOString(),
+        date: new Date(formData.date + 'T12:00:00').toISOString(),
         location: formData.location || undefined,
       });
       onClose();
